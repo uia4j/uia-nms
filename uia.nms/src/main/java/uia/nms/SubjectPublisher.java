@@ -4,15 +4,15 @@
  */
 package uia.nms;
 
-
 /**
  *
  * @author kyle
  */
-public interface SubjectPublisher 
+public interface SubjectPublisher
 {
-    public void start();
-    
+
+    public void start() throws SubjectException;
+
     public void stop();
 
     public boolean publish(String topicName, String label, String content);

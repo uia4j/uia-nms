@@ -4,14 +4,13 @@
  */
 package uia.nms;
 
-
 /**
  *
  * @author kyle
  */
 public interface SubjectFactory {
 
-    public SubjectPublisher createPub(SubjectProfile profile);
+    public SubjectPublisher createPub(SubjectProfile profile) throws SubjectException;
 
-    public SubjectSubscriber createSub(SubjectProfile profile);
+    public SubjectSubscriber createSub(SubjectProfile profile) throws SubjectException;
 }

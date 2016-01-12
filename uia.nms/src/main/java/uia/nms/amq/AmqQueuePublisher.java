@@ -13,10 +13,10 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
+import uia.nms.SubjectException;
 import uia.nms.SubjectProfile;
 import uia.nms.SubjectPublisher;
 
@@ -27,6 +27,7 @@ import uia.nms.SubjectPublisher;
 public class AmqQueuePublisher implements SubjectPublisher {
 
     private Connection connection;
+
     private Session session;
 
     public AmqQueuePublisher(SubjectProfile profile) throws Exception {
@@ -36,10 +37,12 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public void start() {
+    public void start() throws SubjectException {
         try {
             this.connection.start();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
+            throw new SubjectException("start AMQ publisher faulure", ex);
         }
     }
 
@@ -47,13 +50,15 @@ public class AmqQueuePublisher implements SubjectPublisher {
     public void stop() {
         try {
             this.connection.stop();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
+
         }
     }
 
     @Override
     public boolean publish(String queueName, String label, String content) {
-        return publish(queueName, label, content, Long.toString(Calendar.getInstance().getTime().getTime())); 
+        return publish(queueName, label, content, Long.toString(Calendar.getInstance().getTime().getTime()));
     }
 
     @Override
@@ -70,7 +75,8 @@ public class AmqQueuePublisher implements SubjectPublisher {
             producer.send(requestMessage);
 
             return true;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             return false;
         }
     }
@@ -102,8 +108,9 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                    : null;
-        } catch (Exception ex) {
+                            : null;
+        }
+        catch (Exception ex) {
             return null;
         }
     }
@@ -134,8 +141,9 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                    : null;
-        } catch (Exception ex) {
+                            : null;
+        }
+        catch (Exception ex) {
             return null;
         }
     }
