@@ -57,17 +57,16 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public boolean publish(String queueName, String label, String content) {
-        return publish(queueName, label, content, Long.toString(Calendar.getInstance().getTime().getTime()));
+    public boolean publish(String queueName, String label, String content, boolean persistent) {
+        return publish(queueName, label, content, persistent, Long.toString(Calendar.getInstance().getTime().getTime()));
     }
 
     @Override
-    public boolean publish(String queueName, String label, String content, String correlationID) {
+    public boolean publish(String queueName, String label, String content, boolean persistent, String correlationID) {
         try {
             Destination dest = this.session.createQueue(queueName);
             MessageProducer producer = this.session.createProducer(dest);
-
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(correlationID);
@@ -82,7 +81,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public String publish(String queueName, String label, String content, long timeout) {
+    public String publish(String queueName, String label, String content, boolean persistent, long timeout) {
 
         try {
             Destination dest = this.session.createQueue(queueName);
@@ -90,7 +89,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             // Create a producer & cousumer
             MessageProducer producer = this.session.createProducer(dest);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(destRcv);
@@ -108,7 +107,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                            : null;
+                    : null;
         }
         catch (Exception ex) {
             return null;
@@ -116,14 +115,14 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public String publish(String queueName, String label, String content, long timeout, String replyName) {
+    public String publish(String queueName, String label, String content, boolean persistent, long timeout, String replyName) {
         try {
             Destination dest = this.session.createQueue(queueName);
             Destination destRcv = this.session.createTemporaryQueue();
 
             // Create a producer & cousumer
             MessageProducer producer = this.session.createProducer(dest);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(destRcv);
@@ -141,7 +140,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                            : null;
+                    : null;
         }
         catch (Exception ex) {
             return null;

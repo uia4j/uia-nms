@@ -15,11 +15,11 @@ public interface SubjectPublisher
 
     public void stop();
 
-    public boolean publish(String topicName, String label, String content);
+    public boolean publish(String topicName, String label, String content, boolean persistent);
 
-    public boolean publish(String topicName, String label, String content, String correlationID);
+    public boolean publish(String topicName, String label, String content, boolean persistent, String correlationID);
 
-    public String publish(String topicName, String label, String content, long timeout);
+    public String publish(String topicName, String label, String content, boolean persistent, long timeout);
 
-    public String publish(String topicName, String label, String content, long timeout, String replyName);
+    public String publish(String topicName, String label, String content, boolean persistent, long timeout, String replyName);
 }

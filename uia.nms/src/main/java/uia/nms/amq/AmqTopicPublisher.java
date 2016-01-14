@@ -26,6 +26,7 @@ import uia.nms.SubjectPublisher;
 public class AmqTopicPublisher implements SubjectPublisher {
 
     private Connection connection;
+
     private Session session;
 
     public AmqTopicPublisher(SubjectProfile profile) throws Exception {
@@ -38,7 +39,8 @@ public class AmqTopicPublisher implements SubjectPublisher {
     public void start() {
         try {
             this.connection.start();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
         }
     }
 
@@ -46,22 +48,22 @@ public class AmqTopicPublisher implements SubjectPublisher {
     public void stop() {
         try {
             this.connection.stop();
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
         }
     }
 
     @Override
-    public boolean publish(String topicName, String label, String content) {
-        return publish(topicName, label, content, Long.toString(Calendar.getInstance().getTime().getTime())); 
+    public boolean publish(String topicName, String label, String content, boolean persistent) {
+        return publish(topicName, label, content, persistent, Long.toString(Calendar.getInstance().getTime().getTime()));
     }
 
     @Override
-    public boolean publish(String topicName, String label, String content, String correlationID) {
+    public boolean publish(String topicName, String label, String content, boolean persistent, String correlationID) {
         try {
             Topic topic = this.session.createTopic(topicName);
             MessageProducer producer = this.session.createProducer(topic);
-
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(correlationID);
@@ -69,13 +71,14 @@ public class AmqTopicPublisher implements SubjectPublisher {
             producer.send(requestMessage);
 
             return true;
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             return false;
         }
     }
 
     @Override
-    public String publish(String topicName, String label, String content, long timeout) {
+    public String publish(String topicName, String label, String content, boolean persistent, long timeout) {
 
         try {
             Topic topicSend = this.session.createTopic(topicName);
@@ -83,7 +86,7 @@ public class AmqTopicPublisher implements SubjectPublisher {
 
             // Create a producer & cousumer
             MessageProducer producer = this.session.createProducer(topicSend);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(topicRcv);
@@ -101,21 +104,22 @@ public class AmqTopicPublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                    : null;
-        } catch (Exception ex) {
+                            : null;
+        }
+        catch (Exception ex) {
             return null;
         }
     }
 
     @Override
-    public String publish(String topicName, String label, String content, long timeout, String replyName) {
+    public String publish(String topicName, String label, String content, boolean persistent, long timeout, String replyName) {
         try {
             Topic topicSend = this.session.createTopic(topicName);
             Topic topicRcv = this.session.createTopic(replyName);
 
             // Create a producer & cousumer
             MessageProducer producer = this.session.createProducer(topicSend);
-            producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+            producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(topicRcv);
@@ -133,8 +137,9 @@ public class AmqTopicPublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                    : null;
-        } catch (Exception ex) {
+                            : null;
+        }
+        catch (Exception ex) {
             return null;
         }
     }

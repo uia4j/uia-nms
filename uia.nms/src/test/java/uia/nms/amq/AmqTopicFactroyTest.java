@@ -17,31 +17,32 @@ import uia.nms.SubjectSubscriber;
  * @author FW
  */
 public class AmqTopicFactroyTest {
-    
+
     public AmqTopicFactroyTest() {
     }
-    
+
     @Test
     public void testPubSub() throws Exception {
         SubjectProfile profile = new SubjectProfile(null, null, "tcp://localhost", "61616");
-        
+
         AmqTopicPublisher pub = new AmqTopicPublisher(profile);
         AmqTopicSubscriber sub = new AmqTopicSubscriber(profile);
         sub.addLabel("xml");
         sub.addMessageListener(new SubjectListener() {
 
+            @Override
             public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
                 System.out.println(body.getContent().get("xml"));
             }
-        
+
         });
-        
+
         sub.start("a.b.c");
-        
+
         pub.start();
-        pub.publish("a.b.c", "xml", "hello judy");
+        pub.publish("a.b.c", "xml", "hello judy", false);
         Thread.sleep(5000);
-        
+
         pub.stop();
         sub.stop();
     }

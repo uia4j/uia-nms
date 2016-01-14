@@ -30,17 +30,18 @@ public class AmqTopicSubTest {
 
         sub.addLabel("xml");
         sub.addMessageListener(new SubjectListener() {
-            
+
+            @Override
             public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
-               System.out.println("Receive: " + body.getContent().get("xml"));
-               System.out.println("Reply To: " + header.getReplyTopic());
-               pub.publish(header.getReplyTopic(), "xml", "You are cute", header.getCorrelationID());
+                System.out.println("Receive: " + body.getContent().get("xml"));
+                System.out.println("Reply To: " + header.getReplyTopic());
+                pub.publish(header.getReplyTopic(), "xml", "You are cute", false, header.getCorrelationID());
             }
         });
 
         sub.start("Judy.Test");
         pub.start();
-        String result = pub.publish("Judy.Test", "xml", "Judy", 3000, "Judy.Test.Reply");
+        String result = pub.publish("Judy.Test", "xml", "Judy", false, 3000, "Judy.Test.Reply");
         System.out.println("Get reply: " + result);
         Thread.sleep(2000);
 
