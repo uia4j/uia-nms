@@ -23,6 +23,7 @@ import uia.nms.MessageHeader;
 import uia.nms.SubjectException;
 import uia.nms.SubjectListener;
 import uia.nms.SubjectProfile;
+import uia.nms.SubjectPublisher;
 import uia.nms.SubjectSubscriber;
 
 /**
@@ -30,6 +31,8 @@ import uia.nms.SubjectSubscriber;
  * @author FW
  */
 public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
+
+    private SubjectProfile profile;
 
     private TreeSet<String> labels;
 
@@ -44,6 +47,8 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
     private boolean started;
 
     public AmqQueueSubscriber(SubjectProfile profile) throws SubjectException, JMSException {
+        this.profile = profile;
+
         this.listeners = new Vector<SubjectListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
@@ -139,6 +144,16 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         }
         catch (Exception ex) {
 
+        }
+    }
+
+    @Override
+    public SubjectPublisher createPub() {
+        try {
+            return new AmqQueuePublisher(this.profile);
+        }
+        catch (Exception e) {
+            return null;
         }
     }
 }

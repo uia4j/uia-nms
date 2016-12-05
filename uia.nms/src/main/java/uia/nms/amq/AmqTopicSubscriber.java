@@ -23,6 +23,7 @@ import uia.nms.MessageHeader;
 import uia.nms.SubjectException;
 import uia.nms.SubjectListener;
 import uia.nms.SubjectProfile;
+import uia.nms.SubjectPublisher;
 import uia.nms.SubjectSubscriber;
 
 /**
@@ -30,6 +31,8 @@ import uia.nms.SubjectSubscriber;
  * @author FW
  */
 public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
+
+    private SubjectProfile profile;
 
     private TreeSet<String> labels;
 
@@ -44,13 +47,11 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
     private boolean started;
 
     public AmqTopicSubscriber(SubjectProfile profile) throws SubjectException, JMSException {
+        this.profile = profile;
+
         this.listeners = new Vector<SubjectListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
-
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(profile.getTarget() + ":" + profile.getPort());
-        this.connection = factory.createConnection();
-        this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
     @Override
@@ -79,6 +80,10 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
         }
 
         try {
+            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.profile.getTarget() + ":" + this.profile.getPort());
+            this.connection = factory.createConnection();
+            this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
             this.consumer = this.session.createConsumer(this.session.createTopic(topicName));
             this.consumer.setMessageListener(this);
             this.connection.start();
@@ -97,12 +102,17 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
         }
 
         try {
-            this.consumer.setMessageListener(null);
-            this.connection.stop();
+            this.session.close();
+            this.connection.close();
+            this.consumer.close();
         }
         catch (Exception ex) {
 
         }
+
+        this.connection = null;
+        this.session = null;
+        this.consumer = null;
         this.started = false;
     }
 
@@ -138,6 +148,16 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
         }
         catch (Exception ex) {
 
+        }
+    }
+
+    @Override
+    public SubjectPublisher createPub() {
+        try {
+            return new AmqTopicPublisher(this.profile);
+        }
+        catch (Exception e) {
+            return null;
         }
     }
 }

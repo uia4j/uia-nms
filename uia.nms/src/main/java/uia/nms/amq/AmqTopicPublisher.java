@@ -102,9 +102,13 @@ public class AmqTopicPublisher implements SubjectPublisher {
             producer.close();
             consumer.close();
 
+            System.out.println("??" + reqplyMessage.getText());
+            System.out.println("?????" + reqplyMessage.getJMSCorrelationID());
+            System.out.println("?????" + requestMessage.getJMSCorrelationID());
+
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                            : null;
+                    : null;
         }
         catch (Exception ex) {
             return null;
@@ -137,7 +141,7 @@ public class AmqTopicPublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                            : null;
+                    : null;
         }
         catch (Exception ex) {
             return null;

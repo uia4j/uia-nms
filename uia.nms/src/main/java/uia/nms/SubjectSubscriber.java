@@ -19,4 +19,6 @@ public interface SubjectSubscriber {
     public void start(String topicName) throws SubjectException;
 
     public void stop();
+
+    public SubjectPublisher createPub();
 }
