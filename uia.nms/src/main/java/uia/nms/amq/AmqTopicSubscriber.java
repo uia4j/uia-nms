@@ -7,7 +7,6 @@ package uia.nms.amq;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import javax.jms.Connection;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
@@ -16,6 +15,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
+import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import uia.nms.MessageBody;
@@ -38,7 +38,7 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
 
     private Vector<SubjectListener> listeners;
 
-    private Connection connection;
+    private ActiveMQConnection connection;
 
     private Session session;
 
@@ -81,7 +81,7 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
 
         try {
             ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.profile.getTarget() + ":" + this.profile.getPort());
-            this.connection = factory.createConnection();
+            this.connection = (ActiveMQConnection) factory.createConnection();
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             this.consumer = this.session.createConsumer(this.session.createTopic(topicName));

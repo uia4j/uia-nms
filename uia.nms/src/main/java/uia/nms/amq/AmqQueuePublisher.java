@@ -6,7 +6,6 @@ package uia.nms.amq;
 
 import java.util.Calendar;
 
-import javax.jms.Connection;
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
 import javax.jms.MessageConsumer;
@@ -14,7 +13,9 @@ import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.command.ActiveMQTempDestination;
 
 import uia.nms.SubjectException;
 import uia.nms.SubjectProfile;
@@ -26,13 +27,13 @@ import uia.nms.SubjectPublisher;
  */
 public class AmqQueuePublisher implements SubjectPublisher {
 
-    private Connection connection;
+    private ActiveMQConnection connection;
 
     private Session session;
 
     public AmqQueuePublisher(SubjectProfile profile) throws Exception {
         ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(profile.getTarget() + ":" + profile.getPort());
-        this.connection = factory.createConnection();
+        this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
@@ -101,6 +102,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
             producer.send(requestMessage);
 
             TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
+            this.connection.deleteTempDestination((ActiveMQTempDestination) destRcv);
 
             producer.close();
             consumer.close();
@@ -134,6 +136,7 @@ public class AmqQueuePublisher implements SubjectPublisher {
             producer.send(requestMessage);
 
             TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
+            this.connection.deleteTempDestination((ActiveMQTempDestination) destRcv);
 
             producer.close();
             consumer.close();
