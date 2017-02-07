@@ -12,13 +12,13 @@ import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
 import javax.jms.TextMessage;
-import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
 import org.apache.log4j.Logger;
 
+import uia.nms.SubjectException;
 import uia.nms.SubjectProfile;
 import uia.nms.SubjectPublisher;
 
@@ -41,11 +41,12 @@ public class AmqTopicPublisher implements SubjectPublisher {
     }
 
     @Override
-    public void start() {
+    public void start() throws SubjectException {
         try {
             this.connection.start();
         }
         catch (Exception ex) {
+            throw new SubjectException("start AMQ topicPub faulure", ex);
         }
     }
 
@@ -67,8 +68,8 @@ public class AmqTopicPublisher implements SubjectPublisher {
     @Override
     public boolean publish(String topicName, String label, String content, boolean persistent, String correlationID) {
         try {
-            Topic topic = this.session.createTopic(topicName);
-            MessageProducer producer = this.session.createProducer(topic);
+            Destination dest = this.session.createTopic(topicName);
+            MessageProducer producer = this.session.createProducer(dest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
@@ -88,16 +89,14 @@ public class AmqTopicPublisher implements SubjectPublisher {
     @Override
     public String publish(String topicName, String label, String content, boolean persistent, long timeout) {
         try {
-            Topic topicSend = this.session.createTopic(topicName);
+            Destination dest = this.session.createTopic(topicName);
             Destination destRcv = this.session.createTemporaryTopic();
-            // Destination destRcv = this.session.createTemporaryQueue();
 
             // Create a producer & consumer
-            MessageProducer producer = this.session.createProducer(topicSend);
+            MessageProducer producer = this.session.createProducer(dest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
-            // MessageConsumer consumer = this.session.createConsumer(destRcv);
             MessageConsumer consumer = this.session.createConsumer(destRcv);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
@@ -107,11 +106,12 @@ public class AmqTopicPublisher implements SubjectPublisher {
             producer.send(requestMessage);
             logger.debug(String.format("amq> %s >>> %s, cid:%s", topicName, destRcv, requestMessage.getJMSCorrelationID()));
 
-            TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
-            this.connection.deleteTempDestination((ActiveMQTempDestination) destRcv);
+            TextMessage reqplyMessage = (TextMessage) consumer.receive(timeout);
 
             producer.close();
             consumer.close();
+
+            this.connection.deleteTempDestination((ActiveMQTempDestination) destRcv);
 
             /**
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
@@ -121,6 +121,7 @@ public class AmqTopicPublisher implements SubjectPublisher {
             return reqplyMessage != null ? reqplyMessage.getText() : null;
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             logger.error(ex);
             return null;
         }
@@ -129,20 +130,20 @@ public class AmqTopicPublisher implements SubjectPublisher {
     @Override
     public String publish(String topicName, String label, String content, boolean persistent, long timeout, String replyName) {
         try {
-            Topic topicSend = this.session.createTopic(topicName);
-            Topic topicRcv = this.session.createTopic(replyName);
+            Destination dest = this.session.createTopic(topicName);
+            Destination destRcv = this.session.createTopic(replyName);
 
             // Create a producer & consumer
-            MessageProducer producer = this.session.createProducer(topicSend);
+            MessageProducer producer = this.session.createProducer(dest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
-            MessageConsumer consumer = this.session.createConsumer(topicRcv);
+            MessageConsumer consumer = this.session.createConsumer(destRcv);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
             requestMessage.setStringProperty("label", label);
-            requestMessage.setJMSReplyTo(topicRcv);
+            requestMessage.setJMSReplyTo(destRcv);
             producer.send(requestMessage);
             logger.debug(String.format("amq> %s >>> %s, cid:%s", topicName, replyName, requestMessage.getJMSCorrelationID()));
 
@@ -151,12 +152,9 @@ public class AmqTopicPublisher implements SubjectPublisher {
             producer.close();
             consumer.close();
 
-            /**
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
                     : null;
-             */
-            return reqplyMessage != null ? reqplyMessage.getText() : null;
         }
         catch (Exception ex) {
             logger.error(ex);

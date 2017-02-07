@@ -52,10 +52,6 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         this.listeners = new Vector<SubjectListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
-
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(profile.getTarget() + ":" + profile.getPort());
-        this.connection = (ActiveMQConnection) factory.createConnection();
-        this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
     @Override
@@ -84,6 +80,10 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         }
 
         try {
+            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.profile.getTarget() + ":" + this.profile.getPort());
+            this.connection = (ActiveMQConnection) factory.createConnection();
+            this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
             this.consumer = this.session.createConsumer(this.session.createQueue(queueName));
             this.consumer.setMessageListener(this);
             this.connection.start();
@@ -91,7 +91,7 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         }
         catch (Exception ex) {
             this.started = false;
-            throw new SubjectException("start AMQ subscriber failure", ex);
+            throw new SubjectException("start AMQ queueSub failure", ex);
         }
     }
 
@@ -103,11 +103,17 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
 
         try {
             this.consumer.setMessageListener(null);
-            this.connection.stop();
+            this.session.close();
+            this.connection.close();
+            this.consumer.close();
         }
         catch (Exception ex) {
 
         }
+
+        this.connection = null;
+        this.session = null;
+        this.consumer = null;
         this.started = false;
     }
 

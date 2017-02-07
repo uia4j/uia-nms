@@ -91,7 +91,7 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
         }
         catch (Exception ex) {
             this.started = false;
-            throw new SubjectException("start AMQ subscriber failure", ex);
+            throw new SubjectException("start AMQ topicSub failure", ex);
         }
     }
 
@@ -102,6 +102,7 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
         }
 
         try {
+            this.consumer.setMessageListener(null);
             this.session.close();
             this.connection.close();
             this.consumer.close();
@@ -129,6 +130,7 @@ public class AmqTopicSubscriber implements SubjectSubscriber, MessageListener {
 
             Topic dest = (Topic) message.getJMSDestination();
             Topic reply = (Topic) message.getJMSReplyTo();
+
             String replyName = reply == null ? null : reply.getTopicName();
             MessageHeader header = new MessageHeader(
                     dest.getTopicName(),

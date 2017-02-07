@@ -22,7 +22,7 @@ public class AmqTopicSubTest {
     }
 
     @Test
-    public void testPubReply() throws Exception {
+    public void testPubReply1() throws Exception {
         SubjectProfile profile = new SubjectProfile(null, null, "tcp://localhost", "61616");
 
         final AmqTopicPublisher pub = new AmqTopicPublisher(profile);
@@ -34,14 +34,42 @@ public class AmqTopicSubTest {
             @Override
             public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
                 System.out.println("Receive: " + body.getContent().get("xml"));
-                System.out.println("Reply To: " + header.getReplyTopic());
-                pub.publish(header.getReplyTopic(), "xml", "You are cute", false, header.getCorrelationID());
+                System.out.println("Reply To: " + header.getTargetDest());
+                pub.publish(header.getTargetDest(), "xml", "You are cute", false, header.getCorrelationID());
             }
         });
 
         sub.start("Judy.Test");
         pub.start();
         String result = pub.publish("Judy.Test", "xml", "Judy", false, 3000, "Judy.Test.Reply");
+        System.out.println("Get reply: " + result);
+        Thread.sleep(2000);
+
+        pub.stop();
+        sub.stop();
+    }
+
+    @Test
+    public void testPubReply2() throws Exception {
+        SubjectProfile profile = new SubjectProfile(null, null, "tcp://localhost", "61616");
+
+        final AmqTopicPublisher pub = new AmqTopicPublisher(profile);
+        AmqTopicSubscriber sub = new AmqTopicSubscriber(profile);
+
+        sub.addLabel("xml");
+        sub.addMessageListener(new SubjectListener() {
+
+            @Override
+            public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
+                System.out.println("Receive: " + body.getContent().get("xml"));
+                System.out.println("Reply To: " + header.getTargetDest());
+                pub.publish(header.getTargetDest(), "xml", "You are cute", false, header.getCorrelationID());
+            }
+        });
+
+        sub.start("Judy.Test");
+        pub.start();
+        String result = pub.publish("Judy.Test", "xml", "Judy", false, 3000);
         System.out.println("Get reply: " + result);
         Thread.sleep(2000);
 

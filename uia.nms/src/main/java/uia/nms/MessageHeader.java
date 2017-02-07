@@ -11,15 +11,15 @@ package uia.nms;
  */
 public class MessageHeader {
 
-    private final String listen;
+    private final String sourceDest;
 
-    private final String reply;
+    private final String targetDest;
     
     private final String correlationID;
 
     public MessageHeader(String listenTopic, String replyTopic, String correlationID) {
-        this.listen = listenTopic;
-        this.reply = replyTopic;
+        this.sourceDest = listenTopic;
+        this.targetDest = replyTopic;
         this.correlationID = correlationID;
     }
     
@@ -27,11 +27,11 @@ public class MessageHeader {
         return this.correlationID;
     }
     
-    public String getListenTopic() {
-        return this.listen;
+    public String getSourceDest() {
+        return this.sourceDest;
     }
 
-    public String getReplyTopic() {
-        return this.reply;
+    public String getTargetDest() {
+        return this.targetDest;
     }
 }
