@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms.amq;
 
 import java.util.TreeSet;
@@ -20,23 +16,19 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
-import uia.nms.SubjectException;
-import uia.nms.SubjectListener;
-import uia.nms.SubjectProfile;
-import uia.nms.SubjectPublisher;
-import uia.nms.SubjectSubscriber;
+import uia.nms.NmsConsumer;
+import uia.nms.NmsEndPoint;
+import uia.nms.NmsException;
+import uia.nms.NmsMessageListener;
+import uia.nms.NmsProducer;
 
-/**
- *
- * @author FW
- */
-public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
+public class AmqQueueConsumer implements NmsConsumer, MessageListener {
 
-    private SubjectProfile profile;
+    private NmsEndPoint endPoint;
 
     private TreeSet<String> labels;
 
-    private Vector<SubjectListener> listeners;
+    private Vector<NmsMessageListener> listeners;
 
     private ActiveMQConnection connection;
 
@@ -46,10 +38,9 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
 
     private boolean started;
 
-    public AmqQueueSubscriber(SubjectProfile profile) throws SubjectException, JMSException {
-        this.profile = profile;
-
-        this.listeners = new Vector<SubjectListener>();
+    public AmqQueueConsumer(NmsEndPoint endPoint) throws NmsException, JMSException {
+        this.endPoint = endPoint;
+        this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
     }
@@ -60,27 +51,27 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
     }
 
     @Override
-    public void addMessageListener(SubjectListener l) {
+    public void addMessageListener(NmsMessageListener l) {
         if (!this.listeners.contains(l)) {
             this.listeners.add(l);
         }
     }
 
     @Override
-    public void removeMessageListener(SubjectListener l) {
+    public void removeMessageListener(NmsMessageListener l) {
         if (this.listeners.contains(l)) {
             this.listeners.remove(l);
         }
     }
 
     @Override
-    public void start(String queueName) throws SubjectException {
+    public void start(String queueName) throws NmsException {
         if (this.started) {
             stop();
         }
 
         try {
-            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.profile.getTarget() + ":" + this.profile.getPort());
+            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.endPoint.getTarget() + ":" + this.endPoint.getPort());
             this.connection = (ActiveMQConnection) factory.createConnection();
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
@@ -91,7 +82,7 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         }
         catch (Exception ex) {
             this.started = false;
-            throw new SubjectException("start AMQ queueSub failure", ex);
+            throw new NmsException("start AMQ(QueueConsumer) failed", ex);
         }
     }
 
@@ -117,11 +108,6 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
         this.started = false;
     }
 
-    /**
-     * JMS message listener.
-     *
-     * @param message The message JMS responses.
-     */
     @Override
     public void onMessage(Message message) {
         TextMessage tm = (TextMessage) message;
@@ -143,8 +129,11 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
             else if (this.labels.contains(label)) {
                 body.put(label, tm.getText());
             }
+            else {
+                return;
+            }
 
-            for (SubjectListener l : this.listeners) {
+            for (NmsMessageListener l : this.listeners) {
                 l.messageReceived(this, header, body);
             }
         }
@@ -154,9 +143,9 @@ public class AmqQueueSubscriber implements SubjectSubscriber, MessageListener {
     }
 
     @Override
-    public SubjectPublisher createPub() {
+    public NmsProducer createProducer() {
         try {
-            return new AmqQueuePublisher(this.profile);
+            return new AmqQueueProducer(this.endPoint);
         }
         catch (Exception e) {
             return null;

@@ -1,42 +1,30 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms.amq;
 
-import uia.nms.SubjectException;
-import uia.nms.SubjectFactory;
-import uia.nms.SubjectProfile;
-import uia.nms.SubjectPublisher;
-import uia.nms.SubjectSubscriber;
+import uia.nms.NmsConsumer;
+import uia.nms.NmsEndPoint;
+import uia.nms.NmsException;
+import uia.nms.NmsFactory;
+import uia.nms.NmsProducer;
 
-/**
- *
- * @author FW
- */
-public class AmqTopicFactory implements SubjectFactory {
-
-    public AmqTopicFactory() {
-
-    }
+public class AmqTopicFactory extends NmsFactory {
 
     @Override
-    public SubjectPublisher createPub(SubjectProfile profile) throws SubjectException {
+    public NmsProducer createProducer(NmsEndPoint endPoint) throws NmsException {
         try {
-            return new AmqTopicPublisher(profile);
+            return new AmqTopicPublisher(endPoint);
         }
         catch (Exception ex) {
-            throw new SubjectException("createPub failure", ex);
+            throw new NmsException("createProducer failed", ex);
         }
     }
 
     @Override
-    public SubjectSubscriber createSub(SubjectProfile profile) throws SubjectException {
+    public NmsConsumer createConsumer(NmsEndPoint endPoint) throws NmsException {
         try {
-            return new AmqTopicSubscriber(profile);
+            return new AmqTopicSubscriber(endPoint);
         }
         catch (Exception ex) {
-            throw new SubjectException("createPub failure", ex);
+            throw new NmsException("createConsumer failed", ex);
         }
     }
 }

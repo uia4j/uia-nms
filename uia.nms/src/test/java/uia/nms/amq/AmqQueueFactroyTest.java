@@ -1,38 +1,27 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms.amq;
 
 import org.junit.Test;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
-import uia.nms.SubjectListener;
-import uia.nms.SubjectProfile;
-import uia.nms.SubjectPublisher;
-import uia.nms.SubjectSubscriber;
+import uia.nms.NmsConsumer;
+import uia.nms.NmsEndPoint;
+import uia.nms.NmsMessageListener;
+import uia.nms.NmsProducer;
 
-/**
- *
- * @author FW
- */
 public class AmqQueueFactroyTest {
-
-    public AmqQueueFactroyTest() {
-    }
 
     @Test
     public void testPubSub() throws Exception {
-        SubjectProfile profile = new SubjectProfile(null, null, "tcp://localhost", "61616");
+        NmsEndPoint profile = new NmsEndPoint(null, null, "tcp://localhost", "61616");
 
         AmqQueueFactory factory = new AmqQueueFactory();
-        SubjectSubscriber sub = factory.createSub(profile);
+        NmsConsumer sub = factory.createConsumer(profile);
         sub.addLabel("xml");
-        sub.addMessageListener(new SubjectListener() {
+        sub.addMessageListener(new NmsMessageListener() {
 
             @Override
-            public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
                 System.out.println("got:" + body.getContent().get("xml"));
             }
 
@@ -40,9 +29,9 @@ public class AmqQueueFactroyTest {
 
         sub.start("a.b.c");
 
-        SubjectPublisher pub = factory.createPub(profile);
+        NmsProducer pub = factory.createProducer(profile);
         pub.start();
-        pub.publish("a.b.c", "xml", "hello judy", false);
+        pub.send("a.b.c", "xml", "hello judy", false);
         Thread.sleep(5000);
 
         pub.stop();

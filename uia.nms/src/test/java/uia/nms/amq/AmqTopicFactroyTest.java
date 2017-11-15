@@ -1,37 +1,26 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms.amq;
 
 import org.junit.Test;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
-import uia.nms.SubjectListener;
-import uia.nms.SubjectProfile;
-import uia.nms.SubjectSubscriber;
+import uia.nms.NmsConsumer;
+import uia.nms.NmsEndPoint;
+import uia.nms.NmsMessageListener;
 
-/**
- *
- * @author FW
- */
 public class AmqTopicFactroyTest {
-
-    public AmqTopicFactroyTest() {
-    }
 
     @Test
     public void testPubSub() throws Exception {
-        SubjectProfile profile = new SubjectProfile(null, null, "tcp://localhost", "61616");
+        NmsEndPoint profile = new NmsEndPoint(null, null, "tcp://localhost", "61616");
 
         AmqTopicPublisher pub = new AmqTopicPublisher(profile);
         AmqTopicSubscriber sub = new AmqTopicSubscriber(profile);
         sub.addLabel("xml");
-        sub.addMessageListener(new SubjectListener() {
+        sub.addMessageListener(new NmsMessageListener() {
 
             @Override
-            public void messageReceived(SubjectSubscriber sub, MessageHeader header, MessageBody body) {
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
                 System.out.println(body.getContent().get("xml"));
             }
 
@@ -40,7 +29,7 @@ public class AmqTopicFactroyTest {
         sub.start("a.b.c");
 
         pub.start();
-        pub.publish("a.b.c", "xml", "hello judy", false);
+        pub.send("a.b.c", "xml", "hello judy", false);
         Thread.sleep(5000);
 
         pub.stop();

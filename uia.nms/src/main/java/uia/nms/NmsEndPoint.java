@@ -1,15 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms;
 
-
-/**
- *
- * @author kyle
- */
-public class SubjectProfile {
+public class NmsEndPoint {
 
     private final String service;
 
@@ -21,10 +12,10 @@ public class SubjectProfile {
 
     private final String desc;
 
-    public SubjectProfile(String service, String network, String target, String port) {
+    public NmsEndPoint(String service, String network, String target, String port) {
         this.service = service;
         this.network = network;
-        if(target != null) {
+        if (target != null) {
             this.target = target;
         }
         else {
@@ -32,7 +23,7 @@ public class SubjectProfile {
             try {
                 host = java.net.Inet4Address.getLocalHost().getHostName();
             }
-            catch(Exception ex) {
+            catch (Exception ex) {
                 host = "localhost";
             }
             this.target = host;

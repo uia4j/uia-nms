@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms.amq;
 
 import java.util.Calendar;
@@ -18,35 +14,31 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
 import org.apache.log4j.Logger;
 
-import uia.nms.SubjectException;
-import uia.nms.SubjectProfile;
-import uia.nms.SubjectPublisher;
+import uia.nms.NmsEndPoint;
+import uia.nms.NmsException;
+import uia.nms.NmsProducer;
 
-/**
- *
- * @author FW
- */
-public class AmqQueuePublisher implements SubjectPublisher {
+public class AmqQueueProducer implements NmsProducer {
 
-    private static final Logger logger = Logger.getLogger(AmqQueuePublisher.class);
+    private static final Logger logger = Logger.getLogger(AmqQueueProducer.class);
 
     private ActiveMQConnection connection;
 
     private Session session;
 
-    public AmqQueuePublisher(SubjectProfile profile) throws Exception {
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(profile.getTarget() + ":" + profile.getPort());
+    public AmqQueueProducer(NmsEndPoint endPoint) throws Exception {
+        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
 
     @Override
-    public void start() throws SubjectException {
+    public void start() throws NmsException {
         try {
             this.connection.start();
         }
         catch (Exception ex) {
-            throw new SubjectException("start AMQ queuePub faulure", ex);
+            throw new NmsException("start AMQ(QueueProducer) failed", ex);
         }
     }
 
@@ -61,22 +53,26 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public boolean publish(String queueName, String label, String content, boolean persistent) {
-        return publish(queueName, label, content, persistent, Long.toString(Calendar.getInstance().getTime().getTime()));
+    public boolean send(String queueName, String label, String content, boolean persistent) {
+        return send(queueName, label, content, persistent, Long.toString(Calendar.getInstance().getTime().getTime()));
     }
 
     @Override
-    public boolean publish(String queueName, String label, String content, boolean persistent, String correlationID) {
+    public boolean send(String queueName, String label, String content, boolean persistent, String correlationID) {
         try {
-            Destination dest = this.session.createQueue(queueName);
-            MessageProducer producer = this.session.createProducer(dest);
+            Destination reqDest = this.session.createQueue(queueName);
+            MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(correlationID);
             requestMessage.setStringProperty("label", label);
             producer.send(requestMessage);
-            logger.debug(String.format("amq> %s >>> %s, cid:%s", queueName, null, requestMessage.getJMSCorrelationID()));
+            logger.debug(String.format("amq, queue, %-20s, %s, %-20s, %s",
+                    queueName,
+                    requestMessage.getJMSCorrelationID(),
+                    "-",
+                    content));
 
             return true;
         }
@@ -87,31 +83,35 @@ public class AmqQueuePublisher implements SubjectPublisher {
     }
 
     @Override
-    public String publish(String queueName, String label, String content, boolean persistent, long timeout) {
+    public String send(String queueName, String label, String content, boolean persistent, long timeout) {
         try {
-            Destination dest = this.session.createQueue(queueName);
-            Destination destRcv = this.session.createTemporaryQueue();
+            Destination reqDest = this.session.createQueue(queueName);
+            Destination respDest = this.session.createTemporaryQueue();
 
             // Create a producer & consumer
-            MessageProducer producer = this.session.createProducer(dest);
+            MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
-            MessageConsumer consumer = this.session.createConsumer(destRcv);
+            MessageConsumer consumer = this.session.createConsumer(respDest);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
             requestMessage.setStringProperty("label", label);
-            requestMessage.setJMSReplyTo(destRcv);
+            requestMessage.setJMSReplyTo(respDest);
             producer.send(requestMessage);
-            logger.debug(String.format("amq> %s >>> %s, cid:%s", queueName, destRcv, requestMessage.getJMSCorrelationID()));
+            logger.debug(String.format("amq, queue, %-20s, %s, %-20s, %s",
+                    queueName,
+                    requestMessage.getJMSCorrelationID(),
+                    respDest,
+                    content));
 
             TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
 
             producer.close();
             consumer.close();
 
-            this.connection.deleteTempDestination((ActiveMQTempDestination) destRcv);
+            this.connection.deleteTempDestination((ActiveMQTempDestination) respDest);
 
             /**
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
@@ -121,30 +121,34 @@ public class AmqQueuePublisher implements SubjectPublisher {
             return reqplyMessage != null ? reqplyMessage.getText() : null;
         }
         catch (Exception ex) {
-            logger.error(ex);
+            logger.error(ex.getMessage(), ex);
             return null;
         }
     }
 
     @Override
-    public String publish(String queueName, String label, String content, boolean persistent, long timeout, String replyName) {
+    public String send(String queueName, String label, String content, boolean persistent, long timeout, String replyName) {
         try {
-            Destination dest = this.session.createQueue(queueName);
-            Destination destRcv = this.session.createTemporaryQueue();
+            Destination reqDest = this.session.createQueue(queueName);
+            Destination respDest = this.session.createTemporaryQueue();
 
             // Create a producer & consumer
-            MessageProducer producer = this.session.createProducer(dest);
+            MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
             producer.setTimeToLive(timeout);
 
-            MessageConsumer consumer = this.session.createConsumer(destRcv);
+            MessageConsumer consumer = this.session.createConsumer(respDest);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
             requestMessage.setStringProperty("label", label);
-            requestMessage.setJMSReplyTo(destRcv);
+            requestMessage.setJMSReplyTo(respDest);
             producer.send(requestMessage);
-            logger.debug(String.format("amq> %s >>> %s, cid:%s", queueName, replyName, requestMessage.getJMSCorrelationID()));
+            logger.debug(String.format("amq, queue, %-20s, %s, %-20s, %s",
+                    queueName,
+                    requestMessage.getJMSCorrelationID(),
+                    respDest,
+                    content));
 
             TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
 
@@ -153,10 +157,10 @@ public class AmqQueuePublisher implements SubjectPublisher {
 
             return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
                     ? reqplyMessage.getText()
-                    : null;
+                            : null;
         }
         catch (Exception ex) {
-            logger.error(ex);
+            logger.error(ex.getMessage(), ex);
             return null;
         }
     }

@@ -1,17 +1,8 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package uia.nms;
 
 import java.util.HashMap;
 import java.util.Map;
 
-
-/**
- *
- * @author kyle
- */
 public class MessageBody {
 
     private final HashMap<String, String> content;
