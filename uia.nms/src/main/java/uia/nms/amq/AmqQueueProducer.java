@@ -14,7 +14,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
 import org.apache.log4j.Logger;
 
-import uia.nms.NmsEndPoint;
 import uia.nms.NmsException;
 import uia.nms.NmsProducer;
 
@@ -26,8 +25,7 @@ public class AmqQueueProducer implements NmsProducer {
 
     private Session session;
 
-    public AmqQueueProducer(NmsEndPoint endPoint) throws Exception {
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
+    public AmqQueueProducer(ActiveMQConnectionFactory factory) throws Exception {
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
@@ -74,6 +72,8 @@ public class AmqQueueProducer implements NmsProducer {
                     "-",
                     content));
 
+            producer.close();
+
             return true;
         }
         catch (Exception ex) {
@@ -89,11 +89,11 @@ public class AmqQueueProducer implements NmsProducer {
             Destination respDest = this.session.createTemporaryQueue();
 
             // Create a producer & consumer
+            MessageConsumer consumer = this.session.createConsumer(respDest);
+
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout);
-
-            MessageConsumer consumer = this.session.createConsumer(respDest);
+            //producer.setTimeToLive(timeout);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
@@ -105,10 +105,9 @@ public class AmqQueueProducer implements NmsProducer {
                     requestMessage.getJMSCorrelationID(),
                     respDest,
                     content));
-
-            TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
-
             producer.close();
+
+            TextMessage reqplyMessage = (TextMessage) consumer.receive(timeout);
             consumer.close();
 
             this.connection.deleteTempDestination((ActiveMQTempDestination) respDest);
@@ -130,14 +129,14 @@ public class AmqQueueProducer implements NmsProducer {
     public String send(String queueName, String label, String content, boolean persistent, long timeout, String replyName) {
         try {
             Destination reqDest = this.session.createQueue(queueName);
-            Destination respDest = this.session.createTemporaryQueue();
+            Destination respDest = this.session.createQueue(replyName);
 
             // Create a producer & consumer
+            MessageConsumer consumer = this.session.createConsumer(respDest);
+
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout);
-
-            MessageConsumer consumer = this.session.createConsumer(respDest);
+            //producer.setTimeToLive(timeout);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
@@ -149,15 +148,19 @@ public class AmqQueueProducer implements NmsProducer {
                     requestMessage.getJMSCorrelationID(),
                     respDest,
                     content));
-
-            TextMessage reqplyMessage = (TextMessage) consumer.receive(producer.getTimeToLive());
-
             producer.close();
+
+            TextMessage reqplyMessage = (TextMessage) consumer.receive(timeout);
             consumer.close();
 
-            return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
+            return reqplyMessage != null
                     ? reqplyMessage.getText()
-                            : null;
+                    : null;
+            /**
+            return reqplyMessage != null && reqplyMessage.getJMSCorrelationID().equals(requestMessage.getJMSCorrelationID())
+            ? reqplyMessage.getText()
+            : null;
+            */
         }
         catch (Exception ex) {
             logger.error(ex.getMessage(), ex);

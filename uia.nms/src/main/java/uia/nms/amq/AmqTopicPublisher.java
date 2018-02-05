@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
+import javax.jms.JMSException;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
 import javax.jms.Session;
@@ -14,7 +15,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
 import org.apache.log4j.Logger;
 
-import uia.nms.NmsEndPoint;
 import uia.nms.NmsException;
 import uia.nms.NmsProducer;
 
@@ -26,8 +26,7 @@ public class AmqTopicPublisher implements NmsProducer {
 
     private Session session;
 
-    public AmqTopicPublisher(NmsEndPoint endPoint) throws Exception {
-        ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
+    public AmqTopicPublisher(ActiveMQConnectionFactory factory) throws JMSException {
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
@@ -91,7 +90,7 @@ public class AmqTopicPublisher implements NmsProducer {
             // Create a producer & consumer
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout);
+            //producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(respDest);
 
@@ -135,7 +134,7 @@ public class AmqTopicPublisher implements NmsProducer {
             // Create a producer & consumer
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout);
+            //producer.setTimeToLive(timeout);
 
             MessageConsumer consumer = this.session.createConsumer(respDest);
 

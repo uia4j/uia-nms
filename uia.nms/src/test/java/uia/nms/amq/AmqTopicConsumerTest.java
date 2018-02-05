@@ -7,15 +7,16 @@ import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
 import uia.nms.NmsEndPoint;
 import uia.nms.NmsMessageListener;
+import uia.nms.NmsProducer;
 
 public class AmqTopicConsumerTest {
 
     @Test
     public void testPubReply1() throws Exception {
-        NmsEndPoint profile = new NmsEndPoint(null, null, "tcp://localhost", "61616");
+        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://ㄅㄢ", "61616");
 
-        final AmqTopicPublisher pub = new AmqTopicPublisher(profile);
-        AmqTopicSubscriber sub = new AmqTopicSubscriber(profile);
+        final NmsProducer pub = new AmqTopicFactory().createProducer(endPoint);
+        NmsConsumer sub = new AmqTopicFactory().createConsumer(endPoint);
 
         sub.addLabel("xml");
         sub.addMessageListener(new NmsMessageListener() {
@@ -40,10 +41,10 @@ public class AmqTopicConsumerTest {
 
     @Test
     public void testPubReply2() throws Exception {
-        NmsEndPoint profile = new NmsEndPoint(null, null, "tcp://localhost", "61616");
+        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
 
-        final AmqTopicPublisher pub = new AmqTopicPublisher(profile);
-        AmqTopicSubscriber sub = new AmqTopicSubscriber(profile);
+        final NmsProducer pub = new AmqTopicFactory().createProducer(endPoint);
+        NmsConsumer sub = new AmqTopicFactory().createConsumer(endPoint);
 
         sub.addLabel("xml");
         sub.addMessageListener(new NmsMessageListener() {

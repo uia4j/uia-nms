@@ -17,14 +17,13 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
-import uia.nms.NmsEndPoint;
 import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
 public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
 
-    private NmsEndPoint endPoint;
+    private ActiveMQConnectionFactory factory;
 
     private TreeSet<String> labels;
 
@@ -38,8 +37,10 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
 
     private boolean started;
 
-    public AmqTopicSubscriber(NmsEndPoint endPoint) throws NmsException, JMSException {
-        this.endPoint = endPoint;
+    public AmqTopicSubscriber(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
+        this.factory = factory;
+        this.factory.setOptimizeAcknowledge(true);
+        this.factory.setAlwaysSessionAsync(false);
 
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
@@ -71,9 +72,9 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
             stop();
         }
 
+        // https://activemq.apache.org/performance-tuning.html
         try {
-            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.endPoint.getTarget() + ":" + this.endPoint.getPort());
-            this.connection = (ActiveMQConnection) factory.createConnection();
+            this.connection = (ActiveMQConnection) this.factory.createConnection();
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             this.consumer = this.session.createConsumer(this.session.createTopic(topicName));
@@ -146,7 +147,7 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
     @Override
     public NmsProducer createProducer() {
         try {
-            return new AmqTopicPublisher(this.endPoint);
+            return new AmqTopicPublisher(this.factory);
         }
         catch (Exception e) {
             return null;

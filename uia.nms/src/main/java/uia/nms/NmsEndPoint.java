@@ -1,5 +1,13 @@
 package uia.nms;
 
+/**
+ * Transports <br>
+ * uri = tcp://address:port
+ * uri = failover:(uri1,...,uriN)?initialReconnectDelay=100<br>
+ *
+ * @author Kyle K. Lin
+ *
+ */
 public class NmsEndPoint {
 
     private final String service;

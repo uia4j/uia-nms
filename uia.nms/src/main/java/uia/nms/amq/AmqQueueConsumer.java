@@ -17,14 +17,13 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
-import uia.nms.NmsEndPoint;
 import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
 public class AmqQueueConsumer implements NmsConsumer, MessageListener {
 
-    private NmsEndPoint endPoint;
+    private ActiveMQConnectionFactory factory;
 
     private TreeSet<String> labels;
 
@@ -38,8 +37,8 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener {
 
     private boolean started;
 
-    public AmqQueueConsumer(NmsEndPoint endPoint) throws NmsException, JMSException {
-        this.endPoint = endPoint;
+    public AmqQueueConsumer(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
+        this.factory = factory;
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
@@ -71,8 +70,7 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener {
         }
 
         try {
-            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(this.endPoint.getTarget() + ":" + this.endPoint.getPort());
-            this.connection = (ActiveMQConnection) factory.createConnection();
+            this.connection = (ActiveMQConnection) this.factory.createConnection();
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             this.consumer = this.session.createConsumer(this.session.createQueue(queueName));
@@ -138,14 +136,14 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener {
             }
         }
         catch (Exception ex) {
-
+            ex.printStackTrace();
         }
     }
 
     @Override
     public NmsProducer createProducer() {
         try {
-            return new AmqQueueProducer(this.endPoint);
+            return new AmqQueueProducer(this.factory);
         }
         catch (Exception e) {
             return null;
