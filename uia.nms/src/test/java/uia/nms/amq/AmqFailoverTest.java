@@ -39,8 +39,8 @@ public class AmqFailoverTest {
 
         final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
         pub.start();
-        String result = pub.send("HTKS.FAILOVER.S", "value", "xxxx", false, 3000, "HTKS.FAILOVER.R");
-        System.out.println("Get reply: " + result);
+        // String result = pub.send("HTKS.FAILOVER.S", "value", "xxxx", false, 3000, "HTKS.FAILOVER.R");
+        // System.out.println("Get reply: " + result);
         pub.stop();
         sub.stop();
     }

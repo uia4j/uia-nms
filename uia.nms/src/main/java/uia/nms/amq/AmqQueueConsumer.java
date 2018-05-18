@@ -1,5 +1,6 @@
 package uia.nms.amq;
 
+import java.io.IOException;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -13,6 +14,7 @@ import javax.jms.TextMessage;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.transport.TransportListener;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
@@ -21,7 +23,7 @@ import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
-public class AmqQueueConsumer implements NmsConsumer, MessageListener {
+public class AmqQueueConsumer implements NmsConsumer, MessageListener, TransportListener {
 
     private ActiveMQConnectionFactory factory;
 
@@ -71,10 +73,13 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener {
 
         try {
             this.connection = (ActiveMQConnection) this.factory.createConnection();
+            this.connection.addTransportListener(this);
+
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             this.consumer = this.session.createConsumer(this.session.createQueue(queueName));
             this.consumer.setMessageListener(this);
+
             this.connection.start();
             this.started = true;
         }
@@ -148,5 +153,27 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener {
         catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public void onCommand(Object command) {
+        // ActiveMQ TransportListener
+    }
+
+    @Override
+    public void onException(IOException error) {
+        for (NmsMessageListener l : this.listeners) {
+            //l.broken(this);
+        }
+    }
+
+    @Override
+    public void transportInterupted() {
+        // ActiveMQ TransportListener
+    }
+
+    @Override
+    public void transportResumed() {
+        // ActiveMQ TransportListener
     }
 }

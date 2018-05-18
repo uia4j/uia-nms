@@ -1,5 +1,6 @@
 package uia.nms.amq;
 
+import java.io.IOException;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -13,6 +14,7 @@ import javax.jms.Topic;
 
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.transport.TransportListener;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
@@ -21,7 +23,7 @@ import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
-public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
+public class AmqTopicSubscriber implements NmsConsumer, MessageListener, TransportListener {
 
     private ActiveMQConnectionFactory factory;
 
@@ -75,12 +77,16 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
         // https://activemq.apache.org/performance-tuning.html
         try {
             this.connection = (ActiveMQConnection) this.factory.createConnection();
+            this.connection.addTransportListener(this);
+
             this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
 
             this.consumer = this.session.createConsumer(this.session.createTopic(topicName));
             this.consumer.setMessageListener(this);
+
             this.connection.start();
             this.started = true;
+
         }
         catch (Exception ex) {
             this.started = false;
@@ -152,5 +158,31 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener {
         catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public void onCommand(Object command) {
+        // ActiveMQ TransportListener
+        System.out.println("onCommand");
+    }
+
+    @Override
+    public void onException(IOException error) {
+        // ActiveMQ TransportListener
+        System.out.println("onException");
+        System.out.println(error);
+    }
+
+    @Override
+    public void transportInterupted() {
+        // ActiveMQ TransportListener
+        System.out.println("transportInterupted");
+
+    }
+
+    @Override
+    public void transportResumed() {
+        // ActiveMQ TransportListener
+        System.out.println("transportResumed");
     }
 }

@@ -24,7 +24,6 @@ public class AmqQueueFactroyTest {
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
                 System.out.println("got:" + body.getContent().get("xml"));
             }
-
         });
 
         sub.start("a.b.c");

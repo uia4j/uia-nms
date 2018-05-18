@@ -12,5 +12,5 @@ public interface NmsProducer {
 
     public String send(String subjectName, String label, String content, boolean persistent, long timeout);
 
-    public String send(String subjectName, String label, String content, boolean persistent, long timeout, String replyName);
+    public String send(String subjectName, String label, String content, boolean persistent, long timeout, String replyName, NmsMatching matching);
 }
