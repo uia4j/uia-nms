@@ -2,6 +2,10 @@ package uia.nms;
 
 public interface NmsConsumer {
 
+    public void setTransportListener(NmsTransportListener transportListener);
+
+    public NmsTransportListener getTransportListener();
+
     public void addLabel(String label);
 
     public void addMessageListener(NmsMessageListener l);

@@ -22,6 +22,7 @@ import uia.nms.NmsConsumer;
 import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
+import uia.nms.NmsTransportListener;
 
 public class AmqQueueConsumer implements NmsConsumer, MessageListener, TransportListener {
 
@@ -39,11 +40,21 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
 
     private boolean started;
 
+    private NmsTransportListener transportListener;
+
     public AmqQueueConsumer(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
         this.factory = factory;
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
+    }
+
+    public NmsTransportListener getTransportListener() {
+        return this.transportListener;
+    }
+
+    public void setTransportListener(NmsTransportListener transportListener) {
+        this.transportListener = transportListener;
     }
 
     @Override
@@ -162,8 +173,12 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
 
     @Override
     public void onException(IOException error) {
-        for (NmsMessageListener l : this.listeners) {
-            //l.broken(this);
+        if (!this.started) {
+            return;
+        }
+        stop();
+        if (this.transportListener != null) {
+            this.transportListener.broken(this);
         }
     }
 

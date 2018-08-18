@@ -20,6 +20,7 @@ import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
 import uia.nms.NmsException;
+import uia.nms.NmsTransportListener;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
@@ -39,6 +40,8 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener, Transpo
 
     private boolean started;
 
+    private NmsTransportListener transportListener;
+
     public AmqTopicSubscriber(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
         this.factory = factory;
         this.factory.setOptimizeAcknowledge(true);
@@ -47,6 +50,14 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener, Transpo
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
         this.started = false;
+    }
+
+    public NmsTransportListener getTransportListener() {
+        return this.transportListener;
+    }
+
+    public void setTransportListener(NmsTransportListener transportListener) {
+        this.transportListener = transportListener;
     }
 
     @Override
@@ -163,26 +174,28 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener, Transpo
     @Override
     public void onCommand(Object command) {
         // ActiveMQ TransportListener
-        System.out.println("onCommand");
     }
 
     @Override
     public void onException(IOException error) {
         // ActiveMQ TransportListener
-        System.out.println("onException");
-        System.out.println(error);
+        if (!this.started) {
+            return;
+        }
+        stop();
+        if (this.transportListener != null) {
+            this.transportListener.broken(this);
+        }
     }
 
     @Override
     public void transportInterupted() {
         // ActiveMQ TransportListener
-        System.out.println("transportInterupted");
 
     }
 
     @Override
     public void transportResumed() {
         // ActiveMQ TransportListener
-        System.out.println("transportResumed");
     }
 }
