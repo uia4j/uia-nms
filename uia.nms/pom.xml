@@ -6,7 +6,7 @@
 	<version>0.3.0</version>
 	<packaging>jar</packaging>
 	<name>uia-nms</name>
-	<url>http://github.com/gazer2kanlin/uia.nms4j</url>
+	<url>http://github.com/uia4j/uia-nms</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>1.6</maven.compiler.source>
@@ -62,13 +62,13 @@
 		</plugins>
 	</build>
 	<scm>
-		<url>http://github.com/gazer2kanlin/uia.nms4j</url>
+		<url>http://github.com/uia4j/uia-nms</url>
 		<developerConnection>Kyle K. Lin</developerConnection>
 	</scm>
 	<distributionManagement>
 		<repository>
 			<id>bintray-my-maven</id>
-			<url>https://api.bintray.com/maven/gazer2kanlin/maven/uia-nms4j/;publish=1</url>
+			<url>https://api.bintray.com/maven/uia4j/maven/uia-nms/;publish=1</url>
 		</repository>
 	</distributionManagement>
 </project>
