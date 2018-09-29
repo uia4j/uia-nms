@@ -68,7 +68,7 @@
 	<distributionManagement>
 		<repository>
 			<id>bintray-my-maven</id>
-			<url>https://api.bintray.com/maven/gazer2kanlin/maven/uia.nms4j/;publish=1</url>
+			<url>https://api.bintray.com/maven/gazer2kanlin/maven/uia-nms4j/;publish=1</url>
 		</repository>
 	</distributionManagement>
 </project>
