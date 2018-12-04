@@ -6,15 +6,19 @@ import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
 import uia.nms.NmsEndPoint;
+import uia.nms.NmsMatching;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
-public class AmqFailoverTest {
+public class AmqFailoverTest implements NmsMatching {
 
     @Test
     public void test() throws Exception {
-        // NmsEndPoint endPoint = new NmsEndPoint("failover", null, "tcp://10.160.2.26:61616,tcp://10.160.2.27:61616", null);
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.2.30", "61616");
+        NmsEndPoint endPoint = new NmsEndPoint(
+                "failover",
+                null,
+                "tcp://localhost:61616,tcp://localhost:62616,tcp://localhost:63616",
+                null);
 
         final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
         sub.addLabel("value");
@@ -39,9 +43,23 @@ public class AmqFailoverTest {
 
         final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
         pub.start();
-        // String result = pub.send("HTKS.FAILOVER.S", "value", "xxxx", false, 3000, "HTKS.FAILOVER.R");
-        // System.out.println("Get reply: " + result);
+        String result = pub.send(
+                "HTKS.FAILOVER.S",
+                "value",
+                "xxxx",
+                false,
+                3000,
+                "HTKS.FAILOVER.R",
+                this);
+        System.out.println("Get reply: " + result);
         pub.stop();
+
+        Thread.sleep(1000);
         sub.stop();
+    }
+
+    @Override
+    public boolean check(String message) {
+        return true;
     }
 }

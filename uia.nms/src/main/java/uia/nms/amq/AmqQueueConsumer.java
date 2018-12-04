@@ -67,10 +67,12 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
         this.started = false;
     }
 
+    @Override
     public NmsTransportListener getTransportListener() {
         return this.transportListener;
     }
 
+    @Override
     public void setTransportListener(NmsTransportListener transportListener) {
         this.transportListener = transportListener;
     }
@@ -155,7 +157,7 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
                     replyName,
                     message.getJMSCorrelationID());
             MessageBody body = new MessageBody();
-            if (this.labels.size() == 0) {
+            if (label == null || this.labels.size() == 0) {
                 body.put("value", tm.getText());
             }
             else if (this.labels.contains(label)) {
