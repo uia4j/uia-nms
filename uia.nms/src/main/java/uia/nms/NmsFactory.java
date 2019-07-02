@@ -18,9 +18,15 @@
  *******************************************************************************/
 package uia.nms;
 
+import java.util.Properties;
+
 public abstract class NmsFactory {
 
     public abstract NmsProducer createProducer(NmsEndPoint endPoint) throws NmsException;
 
+    public abstract NmsProducer createProducer(NmsEndPoint endPoint, Properties props) throws NmsException;
+
     public abstract NmsConsumer createConsumer(NmsEndPoint endPoint) throws NmsException;
+
+    public abstract NmsConsumer createConsumer(NmsEndPoint endPoint, Properties props) throws NmsException;
 }

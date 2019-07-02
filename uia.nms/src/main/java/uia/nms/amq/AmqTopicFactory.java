@@ -18,6 +18,8 @@
  *******************************************************************************/
 package uia.nms.amq;
 
+import java.util.Properties;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import uia.nms.NmsConsumer;
@@ -37,9 +39,29 @@ public class AmqTopicFactory extends NmsFactory {
             throw new NmsException("createProducer failed", ex);
         }
     }
+    
+    @Override
+    public NmsProducer createProducer(NmsEndPoint endPoint, Properties props) throws NmsException {
+        try {
+            return new AmqTopicPublisher(connectionFactory(endPoint));
+        }
+        catch (Exception ex) {
+            throw new NmsException("createProducer failed", ex);
+        }
+    }
 
     @Override
     public NmsConsumer createConsumer(NmsEndPoint endPoint) throws NmsException {
+        try {
+            return new AmqTopicSubscriber(connectionFactory(endPoint));
+        }
+        catch (Exception ex) {
+            throw new NmsException("createConsumer failed", ex);
+        }
+    }
+
+    @Override
+    public NmsConsumer createConsumer(NmsEndPoint endPoint, Properties props) throws NmsException {
         try {
             return new AmqTopicSubscriber(connectionFactory(endPoint));
         }
@@ -55,5 +77,17 @@ public class AmqTopicFactory extends NmsFactory {
         else {
             return new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
         }
+    }
+
+    static ActiveMQConnectionFactory connectionFactory(NmsEndPoint endPoint, Properties props) {
+    	ActiveMQConnectionFactory f = null;
+        if ("failover".equals(endPoint.getService())) {
+            f = new ActiveMQConnectionFactory(endPoint.getTarget());
+        }
+        else {
+        	f = new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
+        }
+        f.setProperties(props);
+        return f;
     }
 }

@@ -19,10 +19,8 @@
 package uia.nms;
 
 /**
- * Transports <br>
- * uri = tcp://address:port
- * uri = failover:(uri1,...,uriN)?initialReconnectDelay=100<br>
- *
+ * End point<br>
+ * 
  * @author Kyle K. Lin
  *
  */
@@ -38,6 +36,18 @@ public class NmsEndPoint {
 
     private final String desc;
 
+    /**
+	 * ActiveMQ:<br>
+	 * service: [null, failover]<br>
+	 * network: null<br>
+	 * target: [tcp://addr, tcp://addr1:port1,tcp://addr2:port2...]<br>
+	 * port: port [port, null]<br>
+     * 
+     * @param service Service.
+     * @param network Network.
+     * @param target Target.
+     * @param port Port No.
+     */
     public NmsEndPoint(String service, String network, String target, String port) {
         this.service = service;
         this.network = network;

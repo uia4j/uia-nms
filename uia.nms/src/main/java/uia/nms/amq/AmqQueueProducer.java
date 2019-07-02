@@ -112,7 +112,7 @@ public class AmqQueueProducer implements NmsProducer {
 
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout * 60);
+            producer.setTimeToLive(timeout + 5000);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
@@ -152,7 +152,7 @@ public class AmqQueueProducer implements NmsProducer {
             // Create a producer
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            // producer.setTimeToLive(timeout * 60);
+            producer.setTimeToLive(timeout + 5000);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
