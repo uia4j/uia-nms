@@ -18,7 +18,18 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * The transport listener.
+ * 
+ * @author Kan
+ *
+ */
 public interface NmsTransportListener {
 
-    public void broken(NmsConsumer c);
+	/**
+	 * Raise the event when the transport is broken.
+	 * 
+	 * @param consumer The consumer.
+	 */
+    public void broken(NmsConsumer consumer);
 }

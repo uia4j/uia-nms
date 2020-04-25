@@ -30,21 +30,28 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.nms.NmsException;
 import uia.nms.NmsMatching;
 import uia.nms.NmsProducer;
 
+/**
+ * ActiveMQ QUEUE producer implementation
+ * 
+ * @author Kan
+ *
+ */
 public class AmqQueueProducer implements NmsProducer {
 
-    private static final Logger logger = Logger.getLogger(AmqQueueProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(AmqQueueProducer.class);
 
     private ActiveMQConnection connection;
 
     private Session session;
 
-    public AmqQueueProducer(ActiveMQConnectionFactory factory) throws Exception {
+    AmqQueueProducer(ActiveMQConnectionFactory factory) throws Exception {
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }
@@ -96,7 +103,7 @@ public class AmqQueueProducer implements NmsProducer {
             return true;
         }
         catch (Exception ex) {
-            logger.error(ex);
+            logger.error(ex.getMessage(), ex);
             return false;
         }
     }

@@ -33,23 +33,28 @@ public class AmqTopicFactroyTest {
     public void testPubSub() throws Exception {
         NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
 
-        final NmsProducer pub = new AmqTopicFactory().createProducer(endPoint);
+        // subscriber
         NmsConsumer sub = new AmqTopicFactory().createConsumer(endPoint);
-        sub.addLabel("xml");
+        sub.addLabel("data");
         sub.addMessageListener(new NmsMessageListener() {
 
             @Override
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println(body.getContent().get("xml"));
+                System.out.println(body.getContent().get("data"));
             }
         });
+        sub.start("NMS.AMQ.TEST");
 
-        sub.start("a.b.c");
-
+        //publisher
+        final NmsProducer pub = new AmqTopicFactory().createProducer(endPoint);
         pub.start();
-        pub.send("a.b.c", "xml", "hello judy", false);
-        Thread.sleep(5000);
+        pub.send(
+        		"NMS.AMQ.TEST", 		// name
+        		"data",					// label of the message
+        		"Hello Judy", 			// message
+        		false);					// persistent flag
 
+        Thread.sleep(5000);
         pub.stop();
         sub.stop();
     }

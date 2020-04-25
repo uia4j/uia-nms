@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-    <groupId>org.uia.solution</groupId>
+	<groupId>org.uia.solution</groupId>
 	<artifactId>uia-nms</artifactId>
-	<version>0.3.0</version>
+	<version>0.3.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>uia-nms</name>
 	<url>http://github.com/uia4j/uia-nms</url>
@@ -20,14 +20,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.14</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.activemq</groupId>
 			<artifactId>activemq-client</artifactId>
-			<version>5.8.0</version>
+			<version>5.15.12</version>
 		</dependency>
 	</dependencies>
 	<build>

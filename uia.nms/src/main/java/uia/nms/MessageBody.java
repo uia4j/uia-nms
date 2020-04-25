@@ -21,19 +21,40 @@ package uia.nms;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The message body.
+ * 
+ * @author Kan
+ *
+ */
 public class MessageBody {
 
     private final HashMap<String, String> content;
 
+    /**
+     * Constructor.
+     * 
+     */
     public MessageBody() {
         this.content = new HashMap<String, String>();
     }
 
+    /**
+     * Returns the content.
+     * 
+     * @return The content.
+     */
     public Map<String, String> getContent() {
         return this.content;
     }
 
-    public void put(String label, String message) {
-        this.content.put(label, message);
+    /**
+     * Adds content.
+     * 
+     * @param label The label of the value.
+     * @param value The value.
+     */
+    public void put(String label, String value) {
+        this.content.put(label, value);
     }
 }

@@ -30,76 +30,90 @@ import uia.nms.NmsProducer;
 
 public class AmqQueueProducerTest implements NmsMatching {
 
+	private NmsEndPoint endPoint;
+	
+	private int index;
+	
+	public AmqQueueProducerTest() {
+        this.endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
+	}
+
     @Test
-    public void testPubReply1() throws Exception {
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
-
-        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
-        NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
-
-        sub.addLabel("xml");
+    public void testReply1() throws Exception {
+        final NmsConsumer sub = new AmqQueueFactory().createConsumer(this.endPoint);
+        sub.addLabel("data");
         sub.addMessageListener(new NmsMessageListener() {
 
             @Override
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println("Receive: " + body.getContent().get("xml"));
-                System.out.println("Reply To: " + header.responseSubject);
-                pub.send(header.responseSubject, "xml", "You are cute1", false, header.correlationID);
-                pub.send(header.responseSubject, "xml", "You are cute2", false, header.correlationID);
-                pub.send(header.responseSubject, "xml", "You are cute3", false, header.correlationID);
+            	String name = body.getContent().get("data");
+                System.out.println("message=" + name + ", response=" + header.responseSubject + ", cid="  + header.correlationID);
+                String reply = "Hello " + name;
+
+                NmsProducer subpub = sub.createProducer();
+                subpub.send(header.responseSubject, "data", reply, false, header.correlationID);
             }
         });
+        sub.start("NMS.AMQ.TEST");
 
-        sub.start("Judy.Test");
+        final NmsProducer pub = new AmqQueueFactory().createProducer(this.endPoint);
         pub.start();
-        String result = pub.send("Judy.Test", "xml", "Judy", false, 3000, "Judy.Test.Reply", this);
+        String result = pub.send(
+        		"NMS.AMQ.TEST", 
+        		"data", 
+        		"Judy", 
+        		false, 
+        		3000);
         System.out.println("Get reply: " + result);
-        Thread.sleep(2000);
 
+        Thread.sleep(1000);
         pub.stop();
         sub.stop();
     }
 
     @Test
-    public void testPubReply2() throws Exception {
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
-
-        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
-        NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
-
-        sub.addLabel("xml");
+    public void testReply2() throws Exception {
+        final NmsConsumer sub = new AmqQueueFactory().createConsumer(this.endPoint);
+        sub.addLabel("data");
         sub.addMessageListener(new NmsMessageListener() {
 
             @Override
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println("Receive: " + body.getContent().get("xml"));
-                System.out.println("Reply To: " + header.responseSubject);
-                pub.send(header.responseSubject, "xml", "You are cute", false, header.correlationID);
+            	
+            	String name = body.getContent().get("data");
+                System.out.println("message=" + name + ", response=" + header.responseSubject + ", cid="  + header.correlationID);
+                String reply = "Hello " + name;
+                
+                NmsProducer subpub = sub.createProducer();
+                subpub.send(header.responseSubject, "data", reply, false, header.correlationID);
+                subpub.send(header.responseSubject, "data", reply + " how are you", false, header.correlationID);
             }
         });
 
-        sub.start("Judy.Test");
-        pub.start();
-        String result = pub.send("Judy.Test", "xml", "Judy", false, 3000);
-        System.out.println("Get reply: " + result);
-        Thread.sleep(2000);
+        sub.start("NMS.AMQ.TEST");
 
+        this.index = 0;
+        final NmsProducer pub = new AmqQueueFactory().createProducer(this.endPoint);
+        pub.start();
+        String result = pub.send(
+        		"NMS.AMQ.TEST", 
+        		"data", 
+        		"Judy", 
+        		false, 
+        		3000, 
+        		"NMS.AMQ.TEST.REPLY",		// set a specific reply name.
+        		this);						// match helper
+        System.out.println("Reply: " + result);
+
+        Thread.sleep(1000);
         pub.stop();
         sub.stop();
-    }
-
-    @Test
-    public void testPub() throws Exception {
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.1.51", "61616");
-        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
-        pub.start();
-        pub.send("HTKS.FME.LABEL.PRINT.SSS", "value", "", false, 3000, "HTKS.FME.LABEL.PRINT.SS", this);
-        pub.stop();
     }
 
     @Override
     public boolean check(String message) {
-        System.out.println(message);
-        return false;
+    	boolean result = this.index++ > 0;
+    	System.out.println("match> " + message + ", " + result);
+    	return result;
     }
 }

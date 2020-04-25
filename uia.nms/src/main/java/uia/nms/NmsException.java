@@ -18,14 +18,30 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * The NMS exception.
+ * 
+ * @author Kan
+ *
+ */
 public class NmsException extends Exception {
 
     private static final long serialVersionUID = -5417616927725462467L;
 
+    /**
+     * Constructor.
+     * 
+     * @param message The message.
+     */
     public NmsException(String message) {
         super(message);
     }
 
+    /**
+     * 
+     * @param message The message.
+     * @param ex The exception.
+     */
     public NmsException(String message, Exception ex) {
         super(message, ex);
     }

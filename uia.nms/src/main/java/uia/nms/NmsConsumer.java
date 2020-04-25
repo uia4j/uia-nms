@@ -18,21 +18,64 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * The consumer.
+ * 
+ * @author Kan
+ *
+ */
 public interface NmsConsumer {
 
+	/**
+	 * Sets a transport listener.
+	 * 
+	 * @param transportListener A transport listener.
+	 */
     public void setTransportListener(NmsTransportListener transportListener);
 
+    /**
+     * Returns the transport listener.
+     * 
+     * @return The transport listener.
+     */
     public NmsTransportListener getTransportListener();
 
+    /**
+     * Adds a label to be handled.
+     * 
+     * @param label The label.
+     */
     public void addLabel(String label);
 
+    /**
+     * Adds a message listener.
+     * 
+     * @param l A message listener.
+     */
     public void addMessageListener(NmsMessageListener l);
 
+    /**
+     * Removes a message listener.
+     * @param l
+     */
     public void removeMessageListener(NmsMessageListener l);
 
+    /**
+     * Start to handle messages on specific subject.
+     * 
+     * @param subjectName The subject name.
+     * @throws NmsException Failed to start.
+     */
     public void start(String subjectName) throws NmsException;
 
+    /**
+     * Stop to handle messages.
+     */
     public void stop();
 
+    /**
+     * Create a new producer.
+     * @return
+     */
     public NmsProducer createProducer();
 }

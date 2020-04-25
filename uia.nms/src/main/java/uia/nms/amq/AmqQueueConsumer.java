@@ -42,13 +42,19 @@ import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 import uia.nms.NmsTransportListener;
 
+/**
+ * ActiveMQ QUEUE consumer implementation
+ * 
+ * @author Kan
+ *
+ */
 public class AmqQueueConsumer implements NmsConsumer, MessageListener, TransportListener {
 
-    private ActiveMQConnectionFactory factory;
+    private final ActiveMQConnectionFactory factory;
 
-    private TreeSet<String> labels;
+    private final TreeSet<String> labels;
 
-    private Vector<NmsMessageListener> listeners;
+    private final Vector<NmsMessageListener> listeners;
 
     private ActiveMQConnection connection;
 
@@ -60,17 +66,20 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
 
     private NmsTransportListener transportListener;
 
-    public AmqQueueConsumer(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
+    AmqQueueConsumer(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
         this.factory = factory;
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
+        
         this.started = false;
     }
 
+    @Override
     public NmsTransportListener getTransportListener() {
         return this.transportListener;
     }
 
+    @Override
     public void setTransportListener(NmsTransportListener transportListener) {
         this.transportListener = transportListener;
     }

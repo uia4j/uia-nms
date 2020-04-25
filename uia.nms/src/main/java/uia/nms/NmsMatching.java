@@ -18,7 +18,19 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * Check if the message matches the requirement.
+ * 
+ * @author Kan
+ *
+ */
 public interface NmsMatching {
 
+	/**
+	 * Check the message.
+	 * 
+	 * @param message The message.
+	 * @return Matched or not.
+	 */
     public boolean check(String message);
 }

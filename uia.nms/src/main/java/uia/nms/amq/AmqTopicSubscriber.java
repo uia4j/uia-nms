@@ -42,13 +42,19 @@ import uia.nms.NmsTransportListener;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
+/**
+ * ActiveMQ TOPIC subscriber implementation
+ * 
+ * @author Kan
+ *
+ */
 public class AmqTopicSubscriber implements NmsConsumer, MessageListener, TransportListener {
 
-    private ActiveMQConnectionFactory factory;
+    private final ActiveMQConnectionFactory factory;
 
-    private TreeSet<String> labels;
+    private final TreeSet<String> labels;
 
-    private Vector<NmsMessageListener> listeners;
+    private final Vector<NmsMessageListener> listeners;
 
     private ActiveMQConnection connection;
 
@@ -60,20 +66,22 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener, Transpo
 
     private NmsTransportListener transportListener;
 
-    public AmqTopicSubscriber(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
+    AmqTopicSubscriber(ActiveMQConnectionFactory factory) throws NmsException, JMSException {
         this.factory = factory;
         this.factory.setOptimizeAcknowledge(true);
         this.factory.setAlwaysSessionAsync(false);
-
-        this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
+        this.listeners = new Vector<NmsMessageListener>();
+
         this.started = false;
     }
 
+    @Override
     public NmsTransportListener getTransportListener() {
         return this.transportListener;
     }
 
+    @Override
     public void setTransportListener(NmsTransportListener transportListener) {
         this.transportListener = transportListener;
     }

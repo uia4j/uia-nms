@@ -18,14 +18,36 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * The message header.
+ * 
+ * @author Kan
+ *
+ */
 public class MessageHeader {
 
+	/**
+	 * The subject name of the request.
+	 */
     public final String requestSubject;
 
+	/**
+	 * The subject name of the response.
+	 */
     public final String responseSubject;
 
+	/**
+	 * The correlation id.
+	 */
     public final String correlationID;
 
+    /**
+     * The constructor.
+     * 
+     * @param requestSubject The subject name of the request.
+     * @param responseSubject The subject name of the response.
+     * @param correlationID The correlation id.
+     */
     public MessageHeader(String requestSubject, String responseSubject, String correlationID) {
         this.requestSubject = requestSubject;
         this.responseSubject = responseSubject;

@@ -31,21 +31,28 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.command.ActiveMQTempDestination;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.nms.NmsException;
 import uia.nms.NmsMatching;
 import uia.nms.NmsProducer;
 
+/**
+ * ActiveMQ TOPIC publisher implementation
+ * 
+ * @author Kan
+ *
+ */
 public class AmqTopicPublisher implements NmsProducer {
 
-    private static final Logger logger = Logger.getLogger(AmqTopicPublisher.class);
+    private static final Logger logger = LoggerFactory.getLogger(AmqTopicPublisher.class);
 
     private ActiveMQConnection connection;
 
     private Session session;
 
-    public AmqTopicPublisher(ActiveMQConnectionFactory factory) throws JMSException {
+    AmqTopicPublisher(ActiveMQConnectionFactory factory) throws JMSException {
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
     }

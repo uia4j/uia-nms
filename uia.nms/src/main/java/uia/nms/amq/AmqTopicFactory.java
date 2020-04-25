@@ -26,6 +26,12 @@ import uia.nms.NmsException;
 import uia.nms.NmsFactory;
 import uia.nms.NmsProducer;
 
+/**
+ * ActiveMQ TOPIC based factory.
+ * 
+ * @author Kan
+ *
+ */
 public class AmqTopicFactory extends NmsFactory {
 
     @Override
@@ -48,9 +54,10 @@ public class AmqTopicFactory extends NmsFactory {
         }
     }
 
-    static ActiveMQConnectionFactory connectionFactory(NmsEndPoint endPoint) {
+    private ActiveMQConnectionFactory connectionFactory(NmsEndPoint endPoint) {
         if ("failover".equals(endPoint.getService())) {
             return new ActiveMQConnectionFactory(endPoint.getTarget());
+            // return new ActiveMQConnectionFactory("failover:" + endPoint.getTarget());
         }
         else {
             return new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());

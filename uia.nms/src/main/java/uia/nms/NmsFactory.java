@@ -18,9 +18,29 @@
  *******************************************************************************/
 package uia.nms;
 
+/**
+ * The NMS factory.
+ * 
+ * @author Kan
+ *
+ */
 public abstract class NmsFactory {
 
+	/**
+	 * Creates a new producer
+	 * 
+     * @param endPoint The end point.
+	 * @return The producer.
+	 * @throws NmsException Failed to create.
+	 */
     public abstract NmsProducer createProducer(NmsEndPoint endPoint) throws NmsException;
 
+    /**
+     * Creates anew consumer.
+     * 
+     * @param endPoint The end point.
+     * @return The consumer.
+	 * @throws NmsException Failed to create.
+     */
     public abstract NmsConsumer createConsumer(NmsEndPoint endPoint) throws NmsException;
 }

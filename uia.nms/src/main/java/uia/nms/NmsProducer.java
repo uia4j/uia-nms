@@ -20,15 +20,64 @@ package uia.nms;
 
 public interface NmsProducer {
 
+	/**
+	 * Starts the producer.
+	 * 
+	 * @throws NmsException
+	 */
     public void start() throws NmsException;
 
+    /**
+     * stops the producer.
+     */
     public void stop();
 
+    /**
+     * Sends a new message.
+     * 
+     * @param subjectName The subject name.
+     * @param label The label of the content.
+     * @param content The content.
+     * @param persistent Persistent or not. Depending on the implementation.
+     * @return Success or not.
+     */
     public boolean send(String subjectName, String label, String content, boolean persistent);
 
+    /**
+     * Sends a new message.
+     * 
+     * @param subjectName The subject name.
+     * @param label The label of the content.
+     * @param content The content.
+     * @param persistent Persistent or not. Depending on the implementation.
+     * @param correlationID The correlation id.
+     * @return Success or not.
+     */
     public boolean send(String subjectName, String label, String content, boolean persistent, String correlationID);
 
+    /**
+     * Sends a new message and receive a response synchronously.
+     * 
+     * @param subjectName The subject name.
+     * @param label The label of the content.
+     * @param content The content.
+     * @param persistent Persistent or not. Depending on the implementation.
+     * @param timeout The timeout.
+     * @return The response message.
+     */
     public String send(String subjectName, String label, String content, boolean persistent, long timeout);
 
+    /**
+     * Sends a new message and receive a response synchronously.
+     * 
+     * @param subjectName The subject name.
+     * @param label The label of the content.
+     * @param content The content.
+     * @param persistent Persistent or not. Depending on the implementation.
+     * @param timeout The timeout.
+     * @param replyName The reply name.
+     * @param matching The matching helper of the reponse message.
+     * @return The response message.
+     */
     public String send(String subjectName, String label, String content, boolean persistent, long timeout, String replyName, NmsMatching matching);
 }

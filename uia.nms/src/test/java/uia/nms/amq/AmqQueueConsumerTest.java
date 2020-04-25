@@ -27,7 +27,7 @@ import uia.nms.NmsEndPoint;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsTransportListener;
 
-public class AmqQueueConsumerTest extends AbstractTest implements NmsTransportListener {
+public class AmqQueueConsumerTest extends AbstractTest implements NmsTransportListener, NmsMessageListener {
 
     @Test
     public void testComsumer() throws Exception {
@@ -35,22 +35,20 @@ public class AmqQueueConsumerTest extends AbstractTest implements NmsTransportLi
 
         NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
         sub.setTransportListener(this);
-        sub.addMessageListener(new NmsMessageListener() {
-
-            @Override
-            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println("Receive: " + body.getContent());
-            }
-        });
-        sub.start("UIA.NMS.TEST");
+        sub.addMessageListener(this);
+        sub.start("NMS.AMQ.TEST");
 
         pressToContinue();
-
         sub.stop();
     }
 
     @Override
     public void broken(NmsConsumer c) {
         System.out.println("broken");
+    }
+
+    @Override
+    public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+        System.out.println("Receive: " + body.getContent());
     }
 }

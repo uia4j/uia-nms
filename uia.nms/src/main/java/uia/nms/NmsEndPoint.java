@@ -19,7 +19,8 @@
 package uia.nms;
 
 /**
- * Transports <br>
+ * The end point.
+ * 
  * uri = tcp://address:port
  * uri = failover:(uri1,...,uriN)?initialReconnectDelay=100<br>
  *
@@ -38,6 +39,14 @@ public class NmsEndPoint {
 
     private final String desc;
 
+    /**
+     * The constructor.
+     * 
+     * @param service The service name.
+     * @param network The network name.
+     * @param target The target name.
+     * @param port The port number.
+     */
     public NmsEndPoint(String service, String network, String target, String port) {
         this.service = service;
         this.network = network;

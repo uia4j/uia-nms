@@ -26,6 +26,12 @@ import uia.nms.NmsException;
 import uia.nms.NmsFactory;
 import uia.nms.NmsProducer;
 
+/**
+ * ActiveMQ QUEUE based factory.
+ * 
+ * @author Kan
+ *
+ */
 public class AmqQueueFactory extends NmsFactory {
 
     @Override
