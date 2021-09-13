@@ -190,7 +190,9 @@ public class AmqTopicSubscriber implements NmsConsumer, MessageListener, Transpo
     @Override
     public NmsProducer createProducer() {
         try {
-            return new AmqTopicPublisher(this.factory);
+        	NmsProducer producer = new AmqTopicPublisher(this.factory);
+        	producer.setTimeToLive(2000);
+        	return producer;
         }
         catch (Exception e) {
             return null;

@@ -51,11 +51,37 @@ public class AmqTopicPublisher implements NmsProducer {
     private ActiveMQConnection connection;
 
     private Session session;
+    
+    private boolean timeSync;
+    
+    private int timeToLive;
 
     AmqTopicPublisher(ActiveMQConnectionFactory factory) throws JMSException {
         this.connection = (ActiveMQConnection) factory.createConnection();
         this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        this.timeSync = true;	// 對 timeToLive 有影響
+        this.timeToLive = 5000;
     }
+
+	@Override
+	public int getTimeToLive() {
+		return timeToLive; 
+	}
+
+	@Override
+	public void setTimeToLive(int timeToLive) {
+		this.timeToLive = Math.max(1000, timeToLive);
+	}
+
+	@Override
+    public boolean isTimeSync() {
+		return timeSync;
+	}
+
+	@Override
+	public void setTimeSync(boolean timeSync) {
+		this.timeSync = timeSync;
+	}
 
     @Override
     public void start() throws NmsException {
@@ -88,8 +114,13 @@ public class AmqTopicPublisher implements NmsProducer {
             Destination reqDest = this.session.createTopic(topicName);
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
+            producer.setTimeToLive(this.timeToLive);
+            if(!this.timeSync) {
+            	producer.setDisableMessageTimestamp(true);
+            }
 
             TextMessage requestMessage = this.session.createTextMessage(content);
+            requestMessage.setJMSTimestamp(System.currentTimeMillis());
             requestMessage.setJMSCorrelationID(correlationID);
             requestMessage.setStringProperty("label", label);
             producer.send(requestMessage);
@@ -117,11 +148,15 @@ public class AmqTopicPublisher implements NmsProducer {
             // Create a producer & consumer
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            //producer.setTimeToLive(timeout);
+            producer.setTimeToLive(this.timeToLive);
+            if(!this.timeSync) {
+            	producer.setDisableMessageTimestamp(true);
+            }
 
             MessageConsumer consumer = this.session.createConsumer(respDest);
 
             TextMessage requestMessage = this.session.createTextMessage(content);
+            requestMessage.setJMSTimestamp(System.currentTimeMillis());
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
             requestMessage.setStringProperty("label", label);
             requestMessage.setJMSReplyTo(respDest);
@@ -159,9 +194,13 @@ public class AmqTopicPublisher implements NmsProducer {
             // Create a producer
             MessageProducer producer = this.session.createProducer(reqDest);
             producer.setDeliveryMode(persistent ? DeliveryMode.PERSISTENT : DeliveryMode.NON_PERSISTENT);
-            producer.setTimeToLive(timeout * 5);
+            producer.setTimeToLive(this.timeToLive);
+            if(!this.timeSync) {
+            	producer.setDisableMessageTimestamp(true);
+            }
 
             TextMessage requestMessage = this.session.createTextMessage(content);
+            requestMessage.setJMSTimestamp(System.currentTimeMillis());
             requestMessage.setJMSCorrelationID(Long.toString(Calendar.getInstance().getTime().getTime()));
             requestMessage.setStringProperty("label", label);
             requestMessage.setJMSReplyTo(respDest);

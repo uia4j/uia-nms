@@ -186,7 +186,9 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
     @Override
     public NmsProducer createProducer() {
         try {
-            return new AmqQueueProducer(this.factory);
+        	NmsProducer producer = new AmqQueueProducer(this.factory);
+        	producer.setTimeToLive(2000);
+        	return producer;
         }
         catch (Exception e) {
             return null;

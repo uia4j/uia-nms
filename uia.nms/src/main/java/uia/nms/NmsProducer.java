@@ -19,6 +19,34 @@
 package uia.nms;
 
 public interface NmsProducer {
+	
+	/**
+	 * Test if the client and server need to perform time synchronization check.
+	 * 
+	 * @return Check or not.
+	 */
+	public boolean isTimeSync();
+
+	/**
+	 * Sets if the client and server need to perform time synchronization check.
+	 * 
+	 * @param timeSync Check or not.
+	 */
+	public void setTimeSync(boolean timeSync);
+	
+	/**
+	 * Sets time to live of a message.
+	 * 
+	 * @param timeToLive Time to live.
+	 */
+	public void setTimeToLive(int timeToLive);
+
+	/**
+	 * Returns time to live of a message.
+	 * 
+	 * @return Time to live.
+	 */
+	public int getTimeToLive();
 
 	/**
 	 * Starts the producer.

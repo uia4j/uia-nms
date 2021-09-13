@@ -39,6 +39,14 @@ public class AmqQueueProducerTest implements NmsMatching {
 	}
 
     @Test
+    public void testSend() throws Exception {
+        final NmsProducer pub = new AmqQueueFactory().createProducer(this.endPoint);
+        pub.start();
+        pub.send("NMS.AMQ.TEST", "data", "Judy", true);
+        pub.stop();
+    }
+
+    @Test
     public void testReply1() throws Exception {
         final NmsConsumer sub = new AmqQueueFactory().createConsumer(this.endPoint);
         sub.addLabel("data");
