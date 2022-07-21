@@ -20,7 +20,7 @@ package uia.nms;
 
 /**
  * The end point.
- * 
+ *
  * uri = tcp://address:port
  * uri = failover:(uri1,...,uriN)?initialReconnectDelay=100<br>
  *
@@ -39,9 +39,13 @@ public class NmsEndPoint {
 
     private final String desc;
 
+    private String user;
+
+    private String password;
+
     /**
      * The constructor.
-     * 
+     *
      * @param service The service name.
      * @param network The network name.
      * @param target The target name.
@@ -67,6 +71,28 @@ public class NmsEndPoint {
         this.desc = this.target + ":" + this.port;
     }
 
+    public NmsEndPoint(String service, String network, String target, String port, String user, String password) {
+        this.service = service;
+        this.network = network;
+        if (target != null) {
+            this.target = target;
+        }
+        else {
+            String host = null;
+            try {
+                host = java.net.Inet4Address.getLocalHost().getHostName();
+            }
+            catch (Exception ex) {
+                host = "localhost";
+            }
+            this.target = host;
+        }
+        this.port = port;
+        this.desc = this.target + ":" + this.port;
+        this.user = user;
+        this.password = password;
+    }
+
     public String getService() {
         return this.service;
     }
@@ -81,6 +107,22 @@ public class NmsEndPoint {
 
     public String getPort() {
         return this.port;
+    }
+
+    public String getUser() {
+        return this.user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     @Override

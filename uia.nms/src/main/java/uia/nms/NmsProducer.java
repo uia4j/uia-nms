@@ -19,40 +19,40 @@
 package uia.nms;
 
 public interface NmsProducer {
-	
-	/**
-	 * Test if the client and server need to perform time synchronization check.
-	 * 
-	 * @return Check or not.
-	 */
-	public boolean isTimeSync();
 
-	/**
-	 * Sets if the client and server need to perform time synchronization check.
-	 * 
-	 * @param timeSync Check or not.
-	 */
-	public void setTimeSync(boolean timeSync);
-	
-	/**
-	 * Sets time to live of a message.
-	 * 
-	 * @param timeToLive Time to live.
-	 */
-	public void setTimeToLive(int timeToLive);
+    /**
+     * Test if the client and server need to perform time synchronization check.
+     *
+     * @return Check or not.
+     */
+    public boolean isTimeSync();
 
-	/**
-	 * Returns time to live of a message.
-	 * 
-	 * @return Time to live.
-	 */
-	public int getTimeToLive();
+    /**
+     * Sets if the client and server need to perform time synchronization check.
+     *
+     * @param timeSync Check or not.
+     */
+    public void setTimeSync(boolean timeSync);
 
-	/**
-	 * Starts the producer.
-	 * 
-	 * @throws NmsException
-	 */
+    /**
+     * Sets time to live of a message.
+     *
+     * @param timeToLive Time to live.
+     */
+    public void setTimeToLive(int timeToLive);
+
+    /**
+     * Returns time to live of a message.
+     *
+     * @return Time to live.
+     */
+    public int getTimeToLive();
+
+    /**
+     * Starts the producer.
+     *
+     * @throws NmsException
+     */
     public void start() throws NmsException;
 
     /**
@@ -62,18 +62,18 @@ public interface NmsProducer {
 
     /**
      * Sends a new message.
-     * 
+     *
      * @param subjectName The subject name.
      * @param label The label of the content.
      * @param content The content.
      * @param persistent Persistent or not. Depending on the implementation.
      * @return Success or not.
      */
-    public boolean send(String subjectName, String label, String content, boolean persistent);
+    public boolean send(String subjectName, String label, String content, boolean persistent) throws NmsException;
 
     /**
      * Sends a new message.
-     * 
+     *
      * @param subjectName The subject name.
      * @param label The label of the content.
      * @param content The content.
@@ -81,11 +81,11 @@ public interface NmsProducer {
      * @param correlationID The correlation id.
      * @return Success or not.
      */
-    public boolean send(String subjectName, String label, String content, boolean persistent, String correlationID);
+    public boolean send(String subjectName, String label, String content, boolean persistent, String correlationID) throws NmsException;
 
     /**
      * Sends a new message and receive a response synchronously.
-     * 
+     *
      * @param subjectName The subject name.
      * @param label The label of the content.
      * @param content The content.
@@ -93,11 +93,11 @@ public interface NmsProducer {
      * @param timeout The timeout.
      * @return The response message.
      */
-    public String send(String subjectName, String label, String content, boolean persistent, long timeout);
+    public String send(String subjectName, String label, String content, boolean persistent, long timeout) throws NmsException;
 
     /**
      * Sends a new message and receive a response synchronously.
-     * 
+     *
      * @param subjectName The subject name.
      * @param label The label of the content.
      * @param content The content.
@@ -107,5 +107,5 @@ public interface NmsProducer {
      * @param matching The matching helper of the reponse message.
      * @return The response message.
      */
-    public String send(String subjectName, String label, String content, boolean persistent, long timeout, String replyName, NmsMatching matching);
+    public String send(String subjectName, String label, String content, boolean persistent, long timeout, String replyName, NmsMatching matching) throws NmsException;
 }

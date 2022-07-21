@@ -20,18 +20,18 @@ package uia.nms;
 
 /**
  * Message listener.
- * 
+ *
  * @author Kan
  *
  */
 public interface NmsMessageListener {
 
-	/**
-	 * Raise the event when a message is received.
-	 * 
-	 * @param consumer The consumer.
-	 * @param header The header.
-	 * @param body The body.
-	 */
-    public void messageReceived(NmsConsumer consumer, MessageHeader header, MessageBody body);
+    /**
+     * Raise the event when a message is received.
+     * 
+     * @param consumer The consumer.
+     * @param header The header.
+     * @param body The body.
+     */
+    public void messageReceived(NmsConsumer consumer, MessageHeader header, MessageBody body) throws NmsException;
 }

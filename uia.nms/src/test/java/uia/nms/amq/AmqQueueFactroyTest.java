@@ -28,8 +28,8 @@ import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
 public class AmqQueueFactroyTest {
-	
-	private int c = 0;
+
+    private int c = 0;
 
     @Test
     public void testPubSub1() throws Exception {
@@ -56,13 +56,13 @@ public class AmqQueueFactroyTest {
 
             @Override
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-            	AmqQueueFactroyTest.this.c++;
-            	if(AmqQueueFactroyTest.this.c > 999) {
+                AmqQueueFactroyTest.this.c++;
+                if (AmqQueueFactroyTest.this.c > 999) {
                     long t2 = System.currentTimeMillis();
                     System.out.println(t2 - t1);
                     consumer.stop();
                     System.exit(0);
-            	}
+                }
                 // System.out.println(body.getContent().get("data"));
             }
 

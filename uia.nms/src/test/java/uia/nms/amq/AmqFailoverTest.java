@@ -2,13 +2,13 @@
  * Copyright 2018 UIA
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
+ * contributor license agreements. See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
+ * the License. You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,6 +17,8 @@
  * limitations under the License.
  *******************************************************************************/
 package uia.nms.amq;
+
+import java.util.ArrayList;
 
 import org.junit.Test;
 
@@ -32,34 +34,233 @@ public class AmqFailoverTest {
     @Test
     public void test() throws Exception {
         // NmsEndPoint endPoint = new NmsEndPoint("failover", null, "tcp://10.160.2.26:61616,tcp://10.160.2.27:61616", null);
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.2.30", "61616");
+        ArrayList<NmsConsumer> subs = new ArrayList<NmsConsumer>();
+        // 61616(amq1) ~ 61656(amq5)
+        for (int i = 2; i <= 5; i++) {
+            if (i == 2 || i == 3) {
+                continue;
+            }
+            final int who = i;
+            final NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.82.8", "" + (61606 + 10 * i));
+            final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
+            sub.addLabel("value");
+            sub.addMessageListener(new NmsMessageListener() {
 
-        final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
-        sub.addLabel("value");
-        sub.addMessageListener(new NmsMessageListener() {
+                @Override
+                public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                    System.out.println(who + " got: " + body.getContent());
+                }
+            });
+            sub.start("NMS.HA");
+            subs.add(sub);
+        }
+
+        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
+        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
+        pub.start();
+        for (int x = 1; x < 50; x++) {
+            pub.send("NMS.HA", "value", "xxxx" + x, false);
+        }
+        Thread.sleep(1000);
+
+        pub.stop();
+        for (NmsConsumer sub : subs) {
+            sub.stop();
+        }
+    }
+    
+    @Test
+    public void test01ToOthers() throws Exception {
+        final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
+        
+        final NmsEndPoint endPoint2 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61626");
+        final NmsEndPoint endPoint3 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61636");
+        final NmsEndPoint endPoint4 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61646");
+        final NmsEndPoint endPoint5 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61656");
+
+        final NmsConsumer sub2 = new AmqQueueFactory().createConsumer(endPoint2);
+        sub2.addLabel("value");
+        sub2.addMessageListener(new NmsMessageListener() {
 
             @Override
             public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println("got it");
-                System.out.println(body.getContent());
-                try {
-                    Thread.sleep(1000);
-                }
-                catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                System.out.println(header.responseSubject);
-                sub.createProducer().send(header.responseSubject, null, "good job", false);
+                System.out.println("2> got: " + body.getContent());
             }
         });
-        sub.start("HTKS.FAILOVER.S");
-        Thread.sleep(1000);
+        
+        final NmsConsumer sub3 = new AmqQueueFactory().createConsumer(endPoint3);
+        sub3.addLabel("value");
+        sub3.addMessageListener(new NmsMessageListener() {
 
-        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("3> got: " + body.getContent());
+            }
+        });
+        final NmsConsumer sub4 = new AmqQueueFactory().createConsumer(endPoint4);
+        sub4.addLabel("value");
+        sub4.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("4> got: " + body.getContent());
+            }
+        });
+        final NmsConsumer sub5 = new AmqQueueFactory().createConsumer(endPoint5);
+        sub5.addLabel("value");
+        sub5.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("5> got: " + body.getContent());
+            }
+        });
+
+        //sub2.start("NMS.HA2");
+        sub3.start("NMS.HA3");
+        sub4.start("NMS.HA4");
+        //sub5.start("NMS.HA5");
+
+        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint1);
         pub.start();
-        // String result = pub.send("HTKS.FAILOVER.S", "value", "xxxx", false, 3000, "HTKS.FAILOVER.R");
-        // System.out.println("Get reply: " + result);
+        pub.send("NMS.HA2", "value", "message to HA2-1", false);
+        pub.send("NMS.HA4", "value", "message to HA4-1", false);
+        pub.send("NMS.HA2", "value", "message to HA2-2", false);
+        pub.send("NMS.HA4", "value", "message to HA4-2", false);
+        pub.send("NMS.HA3", "value", "message to HA3-1", false);
+        pub.send("NMS.HA5", "value", "message to HA5-1", false);
+        Thread.sleep(1000);
         pub.stop();
-        sub.stop();
+        
+        sub2.stop();
+        //sub3.stop();
+        sub4.stop();
+        sub5.stop();
+    }
+    @Test
+    public void testOthersTo01() throws Exception {
+        final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
+        final NmsEndPoint endPoint2 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61626");
+        final NmsEndPoint endPoint3 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61636");
+        final NmsEndPoint endPoint4 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61646");
+        final NmsEndPoint endPoint5 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61656");
+
+        final NmsConsumer sub1 = new AmqQueueFactory().createConsumer(endPoint1);
+        sub1.addLabel("value");
+        sub1.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("1> got: " + body.getContent());
+            }
+        });
+        
+
+        sub1.start("NMS.HA.*");
+
+        //final NmsProducer pub2 = new AmqQueueFactory().createProducer(endPoint2);
+        //pub2.start();
+
+        final NmsProducer pub3 = new AmqQueueFactory().createProducer(endPoint3);
+        pub3.start();
+
+        final NmsProducer pub4 = new AmqQueueFactory().createProducer(endPoint4);
+        pub4.start();
+
+        //final NmsProducer pub5 = new AmqQueueFactory().createProducer(endPoint5);
+        //pub5.start();
+        
+        //pub2.send("NMS.HA.2", "value", "2> message1", false);
+        //pub5.send("NMS.HA.5", "value", "5> message1", false);
+        pub4.send("NMS.HA.4", "value", "4> message1", false);
+        pub4.send("NMS.HA.4", "value", "4> message2", false);
+        pub3.send("NMS.HA.3", "value", "3> message1", false);
+        //pub2.send("NMS.HA.2", "value", "2> message2", false);
+        pub4.send("NMS.HA.4", "value", "4> message3", false);
+
+        Thread.sleep(1000);
+        
+        sub1.stop();
+        //pub2.stop();
+        pub3.stop();
+        pub4.stop();
+        //pub5.stop();
+
+    }
+    @Test
+    public void test29() throws Exception {
+        final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
+        final NmsEndPoint endPoint2 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61626");
+        final NmsEndPoint endPoint3 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61636");
+        final NmsEndPoint endPoint29 = new NmsEndPoint(null, null, "tcp://10.160.2.29", "61616");
+
+        final NmsConsumer sub1 = new AmqQueueFactory().createConsumer(endPoint1);
+        sub1.addLabel("value");
+        sub1.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("1> got: " + body.getContent());
+            }
+        });
+
+        final NmsConsumer sub2 = new AmqQueueFactory().createConsumer(endPoint2);
+        sub2.addLabel("value");
+        sub2.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("2> got: " + body.getContent());
+            }
+        });
+        
+        final NmsConsumer sub3 = new AmqQueueFactory().createConsumer(endPoint3);
+        sub3.addLabel("value");
+        sub3.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("3> got: " + body.getContent());
+            }
+        });
+
+        final NmsConsumer sub29 = new AmqQueueFactory().createConsumer(endPoint29);
+        sub29.addLabel("value");
+        sub29.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println("29> got: " + body.getContent());
+            }
+        });
+
+        sub1.start("NMS.HA1");
+        sub2.start("NMS.HA2");
+        sub3.start("NMS.HA3");
+        sub29.start("NMS.HA29");
+
+        final NmsProducer pub2 = new AmqQueueFactory().createProducer(endPoint2);
+        pub2.start();
+
+        final NmsProducer pub3 = new AmqQueueFactory().createProducer(endPoint3);
+        pub3.start();
+
+        final NmsProducer pub29 = new AmqQueueFactory().createProducer(endPoint29);
+        pub29.start();
+
+        //pub5.start();
+        
+        pub2.send("NMS.HA29", "value", "2 to 29", false);
+        pub2.send("NMS.HA3", "value", "2 to 3", false);
+        pub3.send("NMS.HA29", "value", "3 to 29", false);
+        pub29.send("NMS.HA1", "value", "29 to 1", false);
+        pub29.send("NMS.HA2", "value", "29 to 2", false);
+        pub29.send("NMS.HA3", "value", "29 to 3", false);
+
+        Thread.sleep(1000);
+        
+        sub2.stop();
+        pub29.stop();
+
     }
 }
