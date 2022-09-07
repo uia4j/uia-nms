@@ -60,7 +60,7 @@ public class AmqTopicFactory extends NmsFactory {
             // return new ActiveMQConnectionFactory("failover:" + endPoint.getTarget());
         }
         else {
-            return new ActiveMQConnectionFactory(endPoint.getTarget() + ":" + endPoint.getPort());
+            return new ActiveMQConnectionFactory("failover://(" + endPoint.getTarget() + ":" + endPoint.getPort() + ")?initialReconnectDelay=2000&maxReconnectAttempts=3");
         }
     }
 }

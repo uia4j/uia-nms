@@ -62,6 +62,9 @@ public class RmqQueueConsumer implements NmsConsumer {
 
     @Override
     public void start(String subjectName) throws NmsException {
+        if (this.conn == null) {
+            throw new NmsException("The connection is closed. Recreate the instance.");
+        }
         try {
             this.ch = this.conn.createChannel();
             this.ch.queueDeclare(subjectName, false, false, false, null);
@@ -112,8 +115,6 @@ public class RmqQueueConsumer implements NmsConsumer {
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

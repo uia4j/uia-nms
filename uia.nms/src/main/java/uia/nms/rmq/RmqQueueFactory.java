@@ -25,6 +25,7 @@ public class RmqQueueFactory extends NmsFactory implements ExceptionHandler {
     public RmqQueueFactory() {
         this.factory = new ConnectionFactory();
         this.factory.setAutomaticRecoveryEnabled(true);
+        this.factory.setConnectionTimeout(15000);
         this.factory.setRequestedHeartbeat(60);
         this.factory.setExceptionHandler(this);
     }

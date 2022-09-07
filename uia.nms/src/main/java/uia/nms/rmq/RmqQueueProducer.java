@@ -40,6 +40,9 @@ public class RmqQueueProducer implements NmsProducer {
 
     @Override
     public void start() throws NmsException {
+        if (this.conn == null) {
+            throw new NmsException("The connection is closed. Recreate the instance.");
+        }
         try {
             this.ch = this.conn.createChannel();
         }
@@ -50,12 +53,6 @@ public class RmqQueueProducer implements NmsProducer {
 
     @Override
     public void stop() {
-        try {
-            this.ch.close();
-            this.ch = null;
-        }
-        catch (Exception ex) {
-        }
     }
 
     @Override
