@@ -65,4 +65,15 @@
 		<url>http://github.com/uia4j/uia-nms</url>
 		<developerConnection>Kyle K. Lin</developerConnection>
 	</scm>
+	<distributionManagement>
+		<repository>
+			<id>HTKS</id>
+			<url>http://10.160.1.56:17002/repository/sapme4j-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<uniqueVersion>false</uniqueVersion>
+			<id>HTKS</id>
+			<url>http://10.160.1.56:17002/repository/sapme4j-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
