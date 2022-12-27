@@ -61,14 +61,14 @@ public class RmqQueueConsumer implements NmsConsumer {
     }
 
     @Override
-    public void start(String subjectName) throws NmsException {
+    public void start(String queueName) throws NmsException {
         if (this.conn == null) {
             throw new NmsException("The connection is closed. Recreate the instance.");
         }
         try {
             this.ch = this.conn.createChannel();
-            this.ch.queueDeclare(subjectName, false, false, false, null);
-            this.ch.basicConsume(subjectName, new Consumer() {
+            this.ch.queueDeclare(queueName, true, false, false, null);
+            this.ch.basicConsume(queueName, new Consumer() {
 
                 @Override
                 public void handleConsumeOk(String consumerTag) {
@@ -86,7 +86,6 @@ public class RmqQueueConsumer implements NmsConsumer {
                 public void handleDelivery(String arg0, Envelope enve, BasicProperties props, byte[] arg3) throws IOException {
                     // important
                     RmqQueueConsumer.this.ch.basicAck(enve.getDeliveryTag(), false);
-
                     MessageHeader header = new MessageHeader(
                             enve.getRoutingKey(),
                             props.getReplyTo(),
@@ -108,7 +107,8 @@ public class RmqQueueConsumer implements NmsConsumer {
             });
         }
         catch (Exception ex) {
-            throw new NmsException("producer failed", ex);
+            ex.printStackTrace();
+            throw new NmsException("consumer failed", ex);
         }
 
     }

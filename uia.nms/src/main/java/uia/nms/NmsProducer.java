@@ -56,6 +56,15 @@ public interface NmsProducer {
     public void start() throws NmsException;
 
     /**
+     * Starts the producer.
+     *
+     * @throws NmsException
+     */
+    public default void start(String name) throws NmsException {
+        start();
+    }
+
+    /**
      * stops the producer.
      */
     public void stop();

@@ -28,7 +28,7 @@ import uia.nms.NmsProducer;
 
 /**
  * ActiveMQ QUEUE based factory.
- * 
+ *
  * @author Kan
  *
  */
@@ -56,10 +56,10 @@ public class AmqQueueFactory extends NmsFactory {
 
     private ActiveMQConnectionFactory connectionFactory(NmsEndPoint endPoint) {
         if ("failover".equals(endPoint.getService())) {
-            return new ActiveMQConnectionFactory("failover:" + endPoint.getTarget());
+            return new ActiveMQConnectionFactory("failover:(" + endPoint.getTarget() + ")?initialReconnectDelay=2000");
         }
         else {
-            return new ActiveMQConnectionFactory("failover://(" + endPoint.getTarget() + ":" + endPoint.getPort() + ")?initialReconnectDelay=2000&maxReconnectAttempts=3");
+            return new ActiveMQConnectionFactory("failover:(" + endPoint.getTarget() + ":" + endPoint.getPort() + ")?initialReconnectDelay=2000");
         }
     }
 }

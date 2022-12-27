@@ -29,6 +29,11 @@
 			<artifactId>amqp-client</artifactId>
 			<version>5.14.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.paho</groupId>
+			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+			<version>1.2.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>${project.artifactId}.${project.version}</finalName>

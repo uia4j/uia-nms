@@ -18,8 +18,6 @@
  *******************************************************************************/
 package uia.nms.amq;
 
-import java.util.ArrayList;
-
 import org.junit.Test;
 
 import uia.nms.MessageBody;
@@ -32,47 +30,45 @@ import uia.nms.NmsProducer;
 public class AmqFailoverTest {
 
     @Test
-    public void test() throws Exception {
-        // NmsEndPoint endPoint = new NmsEndPoint("failover", null, "tcp://10.160.2.26:61616,tcp://10.160.2.27:61616", null);
-        ArrayList<NmsConsumer> subs = new ArrayList<NmsConsumer>();
-        // 61616(amq1) ~ 61656(amq5)
-        for (int i = 2; i <= 5; i++) {
-            if (i == 2 || i == 3) {
-                continue;
+    public void test1() throws Exception {
+        NmsEndPoint endPoint1 = new NmsEndPoint("failover", null, "tcp://localhost:61616", null);
+        NmsEndPoint endPoint2 = new NmsEndPoint("failover", null, "tcp://localhost:61626", null);
+        NmsEndPoint endPoint = new NmsEndPoint("failover", null, "tcp://localhost:61616,tcp://localhost:61626", null);
+
+        final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
+        sub.addLabel("value");
+        sub.addMessageListener(new NmsMessageListener() {
+
+            @Override
+            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
+                System.out.println(" got: " + body.getContent());
             }
-            final int who = i;
-            final NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.82.8", "" + (61606 + 10 * i));
-            final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
-            sub.addLabel("value");
-            sub.addMessageListener(new NmsMessageListener() {
+        });
+        sub.start("NMS.HA");
 
-                @Override
-                public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                    System.out.println(who + " got: " + body.getContent());
-                }
-            });
-            sub.start("NMS.HA");
-            subs.add(sub);
-        }
-
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
+        System.out.println("---");
         final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
         pub.start();
-        for (int x = 1; x < 50; x++) {
-            pub.send("NMS.HA", "value", "xxxx" + x, false);
+        for (int x = 1; x < 1000; x++) {
+            try {
+                System.out.println(x);
+                pub.send("NMS.HA", "value", "xxxx" + x, false);
+                Thread.sleep(500);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
         Thread.sleep(1000);
-
         pub.stop();
-        for (NmsConsumer sub : subs) {
-            sub.stop();
-        }
+        Thread.sleep(1000);
+        sub.stop();
     }
-    
+
     @Test
     public void test01ToOthers() throws Exception {
         final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
-        
+
         final NmsEndPoint endPoint2 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61626");
         final NmsEndPoint endPoint3 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61636");
         final NmsEndPoint endPoint4 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61646");
@@ -87,7 +83,7 @@ public class AmqFailoverTest {
                 System.out.println("2> got: " + body.getContent());
             }
         });
-        
+
         final NmsConsumer sub3 = new AmqQueueFactory().createConsumer(endPoint3);
         sub3.addLabel("value");
         sub3.addMessageListener(new NmsMessageListener() {
@@ -131,12 +127,13 @@ public class AmqFailoverTest {
         pub.send("NMS.HA5", "value", "message to HA5-1", false);
         Thread.sleep(1000);
         pub.stop();
-        
+
         sub2.stop();
         //sub3.stop();
         sub4.stop();
         sub5.stop();
     }
+
     @Test
     public void testOthersTo01() throws Exception {
         final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
@@ -154,7 +151,6 @@ public class AmqFailoverTest {
                 System.out.println("1> got: " + body.getContent());
             }
         });
-        
 
         sub1.start("NMS.HA.*");
 
@@ -169,7 +165,7 @@ public class AmqFailoverTest {
 
         //final NmsProducer pub5 = new AmqQueueFactory().createProducer(endPoint5);
         //pub5.start();
-        
+
         //pub2.send("NMS.HA.2", "value", "2> message1", false);
         //pub5.send("NMS.HA.5", "value", "5> message1", false);
         pub4.send("NMS.HA.4", "value", "4> message1", false);
@@ -179,7 +175,7 @@ public class AmqFailoverTest {
         pub4.send("NMS.HA.4", "value", "4> message3", false);
 
         Thread.sleep(1000);
-        
+
         sub1.stop();
         //pub2.stop();
         pub3.stop();
@@ -187,6 +183,7 @@ public class AmqFailoverTest {
         //pub5.stop();
 
     }
+
     @Test
     public void test29() throws Exception {
         final NmsEndPoint endPoint1 = new NmsEndPoint(null, null, "tcp://10.160.82.8", "61616");
@@ -213,7 +210,7 @@ public class AmqFailoverTest {
                 System.out.println("2> got: " + body.getContent());
             }
         });
-        
+
         final NmsConsumer sub3 = new AmqQueueFactory().createConsumer(endPoint3);
         sub3.addLabel("value");
         sub3.addMessageListener(new NmsMessageListener() {
@@ -249,7 +246,7 @@ public class AmqFailoverTest {
         pub29.start();
 
         //pub5.start();
-        
+
         pub2.send("NMS.HA29", "value", "2 to 29", false);
         pub2.send("NMS.HA3", "value", "2 to 3", false);
         pub3.send("NMS.HA29", "value", "3 to 29", false);
@@ -258,7 +255,7 @@ public class AmqFailoverTest {
         pub29.send("NMS.HA3", "value", "29 to 3", false);
 
         Thread.sleep(1000);
-        
+
         sub2.stop();
         pub29.stop();
 

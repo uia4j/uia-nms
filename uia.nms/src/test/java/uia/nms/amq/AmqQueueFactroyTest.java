@@ -34,7 +34,7 @@ public class AmqQueueFactroyTest {
     @Test
     public void testPubSub1() throws Exception {
         // producer
-        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61616");
+        NmsEndPoint endPoint = new NmsEndPoint(null, null, "tcp://localhost", "61626");
         for (int i = 0; i < 1000; i++) {
             System.out.println(i);
             NmsProducer producer = new AmqQueueFactory().createProducer(endPoint);
@@ -70,7 +70,7 @@ public class AmqQueueFactroyTest {
         System.out.println("ready to consume...");
 
         consumer.start("NMS.AMQ.TEST");
-        Thread.sleep(60000);
+        Thread.sleep(10000);
     }
 
     @Test

@@ -16,6 +16,8 @@ public class RmqQueueProducer implements NmsProducer {
 
     private Channel ch;
 
+    private String exchangeName;
+
     public RmqQueueProducer(Connection conn) throws NmsException {
         this.conn = conn;
     }
@@ -44,6 +46,21 @@ public class RmqQueueProducer implements NmsProducer {
             throw new NmsException("The connection is closed. Recreate the instance.");
         }
         try {
+            this.exchangeName = null;
+            this.ch = this.conn.createChannel();
+        }
+        catch (Exception ex) {
+            throw new NmsException("producer failed", ex);
+        }
+    }
+
+    @Override
+    public void start(String exchangeName) throws NmsException {
+        if (this.conn == null) {
+            throw new NmsException("The connection is closed. Recreate the instance.");
+        }
+        try {
+            this.exchangeName = exchangeName;
             this.ch = this.conn.createChannel();
         }
         catch (Exception ex) {
@@ -56,7 +73,7 @@ public class RmqQueueProducer implements NmsProducer {
     }
 
     @Override
-    public boolean send(String subjectName, String label, String content, boolean persistent) {
+    public boolean send(String routingKey, String label, String content, boolean persistent) {
         try {
             BasicProperties props = new BasicProperties.Builder()
                     .contentType("text/plain")
@@ -64,17 +81,23 @@ public class RmqQueueProducer implements NmsProducer {
                     .priority(1)
                     .correlationId(UUID.randomUUID().toString())
                     .build();
-            this.ch.queueDeclare(subjectName, false, false, false, null);
-            this.ch.basicPublish("", subjectName, props, content.getBytes());
+            if (this.exchangeName == null) {
+                this.ch.queueDeclare(routingKey, true, false, false, null);
+                this.ch.basicPublish("", routingKey, props, content.getBytes("utf-8"));
+            }
+            else {
+                this.ch.basicPublish(this.exchangeName, routingKey, props, content.getBytes("utf-8"));
+            }
             return true;
         }
         catch (Exception ex) {
+            ex.printStackTrace();
             return false;
         }
     }
 
     @Override
-    public boolean send(String subjectName, String label, String content, boolean persistent, String correlationID) {
+    public boolean send(String routingKey, String label, String content, boolean persistent, String correlationID) {
         try {
             BasicProperties props = new BasicProperties.Builder()
                     .contentType("text/plain")
@@ -83,8 +106,13 @@ public class RmqQueueProducer implements NmsProducer {
                     .contentEncoding("utf-8")
                     .correlationId(correlationID)
                     .build();
-            this.ch.queueDeclare(subjectName, false, false, false, null);
-            this.ch.basicPublish("", subjectName, props, content.getBytes("utf-8"));
+            if (this.exchangeName == null) {
+                this.ch.queueDeclare(routingKey, false, false, false, null);
+                this.ch.basicPublish("", routingKey, props, content.getBytes("utf-8"));
+            }
+            else {
+                this.ch.basicPublish(this.exchangeName, routingKey, props, content.getBytes("utf-8"));
+            }
             return true;
         }
         catch (Exception ex) {
