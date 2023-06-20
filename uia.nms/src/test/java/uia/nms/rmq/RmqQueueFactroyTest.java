@@ -37,9 +37,13 @@ public class RmqQueueFactroyTest {
 
     @Test
     public void testPubSub1() throws Exception {
-        NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.192", "5672");
-        endPoint.setUser("admin");
-        endPoint.setPassword("admin");
+        //NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.192", "5672");
+        //endPoint.setUser("admin");
+        //endPoint.setPassword("admin");
+
+        NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.126", "30056");
+        endPoint.setUser("eap");
+        endPoint.setPassword("eap");
 
         // consumer
         final NmsConsumer consumer = new RmqQueueFactory().createConsumer(endPoint);
@@ -53,14 +57,12 @@ public class RmqQueueFactroyTest {
 
         });
 
-        consumer.start("TREK");    // queue
+        consumer.start("HTKS.FDC.DC.WPRBY");    // queue
 
         // producer
         final NmsProducer producer = new RmqQueueFactory().createProducer(endPoint);
-        producer.start("TREK"); // exchange name: trek
-        producer.send("TREK.STDF", "data", "stdf", true);  // routing key
-        producer.send("TREK.TSK", "data", "tsk", true);
-        producer.send("TREK.CSV", "data", "tsk", true);
+        producer.start("HTKS.FDC.DC"); // exchange name
+        producer.send("HTKS.FDC.DC.WPRBY.WPRBY14.S", "data", "stdf", true);  // routing key
         producer.stop();
 
         Thread.sleep(3000);
@@ -71,16 +73,18 @@ public class RmqQueueFactroyTest {
 
     @Test
     public void testPubSub2() throws Exception {
-        NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.192", "5672");
-        endPoint.setUser("admin");
-        endPoint.setPassword("admin");
+        //NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.192", "5672");
+        //endPoint.setUser("admin");
+        //endPoint.setPassword("admin");
+
+        NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.126", "30056");
+        endPoint.setUser("eap");
+        endPoint.setPassword("eap");
 
         // producer
         final NmsProducer producer = new RmqQueueFactory().createProducer(endPoint);
-        producer.start("TREK"); // exchange name: trek
-        producer.send("TREK.STDF", "data", "stdf", true);  // routing key
-        producer.send("TREK.TSK", "data", "tsk", true);
-        producer.send("TREK.CSV", "data", "tsk", true);
+        producer.start("HTKS.FDC.DC"); // exchange name
+        producer.send("HTKS.FDC.DC.WPRBY.WPRBY14.S", "data", "stdf", true);  // routing key
         producer.stop();
 
         Thread.sleep(5000);
