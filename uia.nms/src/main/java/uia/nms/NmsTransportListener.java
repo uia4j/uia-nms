@@ -32,4 +32,4 @@ public interface NmsTransportListener {
 	 * @param consumer The consumer.
 	 */
     public void broken(NmsConsumer consumer);
-}
+ }

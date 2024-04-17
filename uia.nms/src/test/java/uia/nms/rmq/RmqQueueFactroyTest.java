@@ -36,6 +36,19 @@ import uia.nms.NmsProducer;
 public class RmqQueueFactroyTest {
 
     @Test
+    public void testConn() throws Exception {
+        NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.170.110.64", "5672");
+        endPoint.setUser("trek");
+        endPoint.setPassword("trek12345");
+
+        final NmsConsumer consumer = new RmqQueueFactory().createConsumer(endPoint);
+        consumer.addLabel("data");
+        consumer.start("HTJS.TREK");    // queue
+        Thread.sleep(2000);
+        consumer.stop();
+    }
+
+    @Test
     public void testPubSub1() throws Exception {
         //NmsEndPoint endPoint = new NmsEndPoint("/", null, "10.160.1.192", "5672");
         //endPoint.setUser("admin");

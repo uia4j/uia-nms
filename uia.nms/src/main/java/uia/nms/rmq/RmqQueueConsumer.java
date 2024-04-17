@@ -107,14 +107,22 @@ public class RmqQueueConsumer implements NmsConsumer {
             });
         }
         catch (Exception ex) {
-            ex.printStackTrace();
             throw new NmsException("consumer failed", ex);
         }
-
     }
 
     @Override
     public void stop() {
+        try {
+            this.conn.close();
+        }
+        catch (Exception ex) {
+
+        }
+        finally {
+            this.ch = null;
+            this.conn = null;
+        }
     }
 
     @Override
