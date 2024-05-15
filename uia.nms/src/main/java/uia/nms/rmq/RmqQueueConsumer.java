@@ -3,6 +3,9 @@ package uia.nms.rmq;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -19,6 +22,8 @@ import uia.nms.NmsProducer;
 import uia.nms.NmsTransportListener;
 
 public class RmqQueueConsumer implements NmsConsumer {
+
+    private static final Logger LOGGER = LogManager.getLogger(RmqQueueConsumer.class);
 
     private Connection conn;
 
@@ -85,7 +90,14 @@ public class RmqQueueConsumer implements NmsConsumer {
                 @Override
                 public void handleDelivery(String arg0, Envelope enve, BasicProperties props, byte[] arg3) throws IOException {
                     // important
-                    RmqQueueConsumer.this.ch.basicAck(enve.getDeliveryTag(), false);
+                    try {
+                        RmqQueueConsumer.this.ch.basicAck(enve.getDeliveryTag(), false);
+                    }
+                    catch (IOException ex) {
+                        LOGGER.error("ack failed", ex);
+                        throw ex;
+                    }
+
                     MessageHeader header = new MessageHeader(
                             enve.getRoutingKey(),
                             props.getReplyTo(),
