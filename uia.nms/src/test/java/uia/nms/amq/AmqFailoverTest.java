@@ -24,32 +24,37 @@ import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
 import uia.nms.NmsConsumer;
 import uia.nms.NmsEndPoint;
+import uia.nms.NmsException;
 import uia.nms.NmsMessageListener;
 import uia.nms.NmsProducer;
 
-public class AmqFailoverTest {
+public class AmqFailoverTest implements NmsMessageListener {
+
+    private NmsEndPoint endPoint;
+
+    private int i;
+
+    private NmsConsumer sub;
 
     @Test
     public void test1() throws Exception {
-        NmsEndPoint endPoint1 = new NmsEndPoint("failover", null, "tcp://localhost:61616", null);
-        NmsEndPoint endPoint2 = new NmsEndPoint("failover", null, "tcp://localhost:61626", null);
-        NmsEndPoint endPoint = new NmsEndPoint("failover", null, "tcp://localhost:61616,tcp://localhost:61626", null);
+        this.endPoint = new NmsEndPoint("failover", null, "tcp://localhost:61616,tcp://localhost:61626", null);
 
-        final NmsConsumer sub = new AmqQueueFactory().createConsumer(endPoint);
-        sub.addLabel("value");
-        sub.addMessageListener(new NmsMessageListener() {
-
-            @Override
-            public void messageReceived(NmsConsumer sub, MessageHeader header, MessageBody body) {
-                System.out.println(" got: " + body.getContent());
-            }
-        });
-        sub.start("NMS.HA");
+        this.sub = new AmqQueueFactory().createConsumer(this.endPoint);
+        this.sub.addLabel("value");
+        this.sub.addMessageListener(this);
+        this.sub.start("NMS.HA");
 
         System.out.println("---");
-        final NmsProducer pub = new AmqQueueFactory().createProducer(endPoint);
+        NmsProducer pub = new AmqQueueFactory().createProducer(this.endPoint);
         pub.start();
         for (int x = 1; x < 1000; x++) {
+            if (x % 20 == 0) {
+                pub.stop();
+                pub = new AmqQueueFactory().createProducer(this.endPoint);
+                pub.start();
+                System.out.println("reconn");
+            }
             try {
                 System.out.println(x);
                 pub.send("NMS.HA", "value", "xxxx" + x, false);
@@ -62,7 +67,7 @@ public class AmqFailoverTest {
         Thread.sleep(1000);
         pub.stop();
         Thread.sleep(1000);
-        sub.stop();
+        this.sub.stop();
     }
 
     @Test
@@ -259,5 +264,25 @@ public class AmqFailoverTest {
         sub2.stop();
         pub29.stop();
 
+    }
+
+    @Override
+    public void messageReceived(NmsConsumer consumer, MessageHeader header, MessageBody body) throws NmsException {
+        System.out.println(" got: " + body.getContent());
+        this.i++;
+        if (AmqFailoverTest.this.i % 25 == 0) {
+            try {
+                this.sub.stop();
+                System.out.println(" stop sub");
+
+                this.sub = new AmqQueueFactory().createConsumer(this.endPoint);
+                this.sub.addLabel("value");
+                this.sub.addMessageListener(this);
+                this.sub.start("NMS.HA");
+            }
+            catch (NmsException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

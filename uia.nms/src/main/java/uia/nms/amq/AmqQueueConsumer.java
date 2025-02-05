@@ -33,6 +33,8 @@ import javax.jms.TextMessage;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.TransportListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import uia.nms.MessageBody;
 import uia.nms.MessageHeader;
@@ -44,11 +46,13 @@ import uia.nms.NmsTransportListener;
 
 /**
  * ActiveMQ QUEUE consumer implementation
- * 
+ *
  * @author Kan
  *
  */
 public class AmqQueueConsumer implements NmsConsumer, MessageListener, TransportListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(AmqTopicPublisher.class);
 
     private final ActiveMQConnectionFactory factory;
 
@@ -70,7 +74,7 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
         this.factory = factory;
         this.listeners = new Vector<NmsMessageListener>();
         this.labels = new TreeSet<String>();
-        
+
         this.started = false;
     }
 
@@ -123,6 +127,7 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
         }
         catch (Exception ex) {
             this.started = false;
+            logger.error("start", ex);
             throw new NmsException("start AMQ(QueueConsumer) failed", ex);
         }
     }
@@ -140,6 +145,7 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
             this.consumer.close();
         }
         catch (Exception ex) {
+            logger.error("stop", ex);
 
         }
 
@@ -179,16 +185,16 @@ public class AmqQueueConsumer implements NmsConsumer, MessageListener, Transport
             }
         }
         catch (Exception ex) {
-            ex.printStackTrace();
+            logger.error("onMessage", ex);
         }
     }
 
     @Override
     public NmsProducer createProducer() {
         try {
-        	NmsProducer producer = new AmqQueueProducer(this.factory);
-        	producer.setTimeToLive(2000);
-        	return producer;
+            NmsProducer producer = new AmqQueueProducer(this.factory);
+            producer.setTimeToLive(2000);
+            return producer;
         }
         catch (Exception e) {
             return null;
