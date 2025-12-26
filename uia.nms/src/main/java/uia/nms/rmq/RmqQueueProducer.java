@@ -71,6 +71,7 @@ public class RmqQueueProducer implements NmsProducer {
     @Override
     public void stop() {
         try {
+            this.ch.close();
             this.conn.close();
         }
         catch (Exception ex) {
